@@ -22,17 +22,18 @@ The analysis sections below use the following software and dependencies and assu
 * [samtools](http://www.htslib.org/)
 * [bgzip](http://www.htslib.org/)
 * [tabix](http://www.htslib.org/)
-* [GATK](https://gatk.broadinstitute.org/hc/en-us) (v3.8-1-0 and v4.0.8.1)
+* [GATK](https://gatk.broadinstitute.org/hc/en-us)
 * [bcftools](http://www.htslib.org/)
 * [plink](https://www.cog-genomics.org/plink/)
 * [vcftools](https://vcftools.github.io/index.html)
 * [bedtools](https://bedtools.readthedocs.io/en/latest/)
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
-* [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html) (R package)
+* [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
 * [Repeatmasker](https://www.repeatmasker.org/)
 * [R](https://cran.r-project.org/)
 
 Note, I installed a number of these programs to my [conda](https://docs.conda.io/en/latest/) environment, or installed via a virtual environment (details below).
 
+[Back to top](#contents)
