@@ -44,7 +44,12 @@ Note, I installed a number of these programs to my [conda](https://docs.conda.io
 
 ## Genome data processing and variant calling
 
-In progress...
+This section includes details on steps to filter raw fastq data, map reads to the reference genome, call variants among samples, and filter variant calls.
+
+Raw read data are available from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/?term=PRJNA323498).
+
+Additional information about the reference genome and annotation can be found in the [Appendix](#appendix). 
+
 
 ## Appendix
 
