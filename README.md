@@ -106,7 +106,7 @@ We'll run BWA `mem` on each sample to map it to the reference genome.
 
 #### Run BWA on ingroup samples
 
-Format `bwa_mem.list` with all ingroup samples.
+Format `./log/bwa_mem.list` with all ingroup samples.
 
 The script `runBWAmem.sh` runs BWA `mem` and also indexes using `samtools`.
 ```
@@ -121,6 +121,20 @@ samtools index ./bam/RS_5.bam
 ```
 
 Analysis-ready bam files are in `./bam`.
+
+### Call raw variants using GATK
+
+We'll call individual variants using `HaplotypeCaller` and cohort variants using `GenotypeGVCFs`.
+
+#### Call individual variants
+
+Run runGATKhaplotypecaller.sh to run `HaplotypeCaller` on samples in `./log/GATKhaplotypecaller.list`.
+```
+sh runGATKhaplotypecaller.sh ./log/GATKhaplotypecaller.list > ./log/runGATKhaplotypecaller.log
+```
+
+Note, this takes a small eternity to run on all samples in sequence. We can split out the job to parallel processes by breaking up the list of samples and running the script on each list separately (constrained by CPU threads).
+
 
 
 ## Appendix
