@@ -133,7 +133,59 @@ Run runGATKhaplotypecaller.sh to run `HaplotypeCaller` on samples in `./log/GATK
 sh runGATKhaplotypecaller.sh ./log/GATKhaplotypecaller.list > ./log/runGATKhaplotypecaller.log
 ```
 
+The output genomic VCFs for each individual are in `./gvcf/`.
+
 Note, this takes a small eternity to run on all samples in sequence. We can split out the job to parallel processes by breaking up the list of samples and running the script on each list separately (constrained by CPU threads).
+
+#### Call cohort variants
+
+Format `./log/sample.hrustica+smithii.gvcf.list`, with the list of paths to all input gvcf files.
+
+Run `runTabix.sh` to index all input gvcf files.
+```
+sh tabix.sh ./log/sample.hrustica+smithii.gvcf.list > ./log/tabix.log
+```
+
+Format intervals files with lists of scaffolds to run parallel analyses on in `./log/scaffold.list1.intervals`, etc. (13 files total). These are split out based on the largest scaffold, which represents ~14% of the genome.
+
+Run GATK `GenotypeGVCFs` to call cohort variants on the scaffold intervals.
+```
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list1.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list1.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list1.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list2.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list2.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list2.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list3.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list3.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list3.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list4.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list4.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list4.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list5.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list5.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list5.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list6.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list6.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list6.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list7.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list7.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list7.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list8.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list8.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list8.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list9.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list9.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list9.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list10.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list10.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list10.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list11.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list11.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list11.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list12.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list12.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list12.vcf.log
+java -jar ./gatk-3.8-1-0/GenomeAnalysisTK.jar -T GenotypeGVCFs -R ./Hirundo_rustica_bHirRus1.final.fasta -L ./log/scaffold.list13.intervals -V ./sample.hrustica+smithii.gvcf.list -allSites -o ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list13.vcf.gz > ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list13.vcf.log
+```
+
+Check on running progress.
+```
+for i in ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list*.log; do echo $i; grep 'INFO' $i | tail -n 1; done
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
