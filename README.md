@@ -152,6 +152,8 @@ gunzip *.gz
 cd ..
 ```
 
+[Back to top](#contents)
+
 ### Repeat masking the reference genome
 
 We want to avoid analyzing genotypes in repetitive regions of the genome. We'll generate a repeat annotation for filtering using `repeatmasker`.
@@ -208,7 +210,22 @@ These paths need to be entered during the configuration:
 	* /usr/local/trf409.linux64
 	* /usr/local/rmblast-2.11.0/bin
 
+#### Repeat mask the reference genome
 
+Run repeatmasker.
+```
+cd /data3/hirundo/genome_annotation/
+mkdir repeatmasker
+cd repeatmasker
+/usr/local/RepeatMasker/RepeatMasker -pa 32 -xsmall -species aves ../../Hirundo_rustica_bHirRus1.final.fasta -dir .
+```
+
+Convert .out file to BED format.
+```
+tail -n+4 Hirundo_rustica_bHirRus1.final.fasta.out | awk 'BEGIN{OFS="\t"}{print $5,$6-1,$7}' | bedtools sort -i - > Hirundo_rustica_bHirRus1.final.fasta.repeat.bed
+```
+
+[Back to top](#contents)
 
 
 
