@@ -48,13 +48,14 @@ This section includes details on steps to filter raw fastq data, map reads to th
 
 ### Set up environment
 
-We'll set up directories for read data, mapping data, and variant calls.
+We'll set up directories for read data, mapping data, and variant calls. The `log` subdirectory will contain sample lists, log files, etc.
 ```
 mkdir fastq
 mkdir fastq_filtered
 mkdir bam
 mkdir gvcf
 mkdir vcf
+mkdir log
 ```
 
 ### Filter raw read data with Trimmomatic
@@ -64,6 +65,13 @@ We'll use `Trimmomatic` to filter and quality trim raw read data, using the sett
 * Remove 3' end bases if quality is below 20
 * Minimum read length = 32
 * Remove reads if average quality is < 30
+
+We'll process the input data slightly differently for data generated in 2018 and 2021, based on some slight differences in naming conventions between sequencing runs.
+
+#### Input sample lists
+
+Format `./log/trimmomatic.2018.list` and `./log/trimmomatic.2021.list`.
+
 
 
 ## Appendix
