@@ -11,6 +11,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 ## Contents
 
 * [Software and dependencies](#software-and-dependencies)
+* [Genome data processing and variant calling](#genome-data-processing-and-variant-calling)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -40,6 +41,10 @@ The analysis sections below use the following software and dependencies and assu
 Note, I installed a number of these programs to my [conda](https://docs.conda.io/en/latest/) environment, or installed via a virtual environment (details below).
 
 [Back to top](#contents)
+
+## Genome data processing and variant calling
+
+In progress...
 
 ## Appendix
 
