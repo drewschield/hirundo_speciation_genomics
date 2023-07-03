@@ -52,4 +52,56 @@ In progress...
 
 The [B10K barn swallow reference genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_015227805.1) includes chromosome-length scaffolds, but which are not assigned to the passerine karyotype. Here, we'll establish synteny between scaffolds and chromosome-assigned scaffolds in the [zebra finch reference genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_008822105.2/), and reformat the barn swallow scaffolds according to these assignments.
 
+#### Set up environment
+
+```
+mkdir reference
+cd reference
+mkdir reference_B10K
+mkdir reference_taeniopygia
+cd reference_B10K
+mkdir ncbi_version
+```
+
+#### Download B10K reference genome
+
+```
+cd ncbi_version
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/805/GCF_015227805.1_bHirRus1.pri.v2/GCF_015227805.1_bHirRus1.pri.v2_genomic.fna.gz
+gunzip GCF_015227805.1_bHirRus1.pri.v2_genomic.fna.gz
+cd ../..
+```
+
+#### Download zebra finch genome
+
+```
+cd reference_taeniopygia
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/008/822/105/GCF_008822105.2_bTaeGut2.pat.W.v2/GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.fna.gz
+gunzip GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.fna.gz
+cd ..
+```
+
+#### Format zebra finch scaffold data
+
+```
+cd reference_taeniopygia
+```
+
+Run `fasta_seq_length.py` to calculate scaffold lengths.
+```
+python fasta_seq_length.py GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.fna > GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.scaffold_lengths.txt
+```
+
+Make list of chromosome-assigned scaffolds `GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.chrom_scaffolds.list`.
+
+Extract chromosome-assigned scaffolds using `scaffold_list_extractor.py`.
+
+$python scaffold_list_extractor.py GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.fna GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.chrom_scaffolds.list taeniopygia_guttata_ChromAssigned.fasta
+
+
+
+
+GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.fna > GCF_008822105.2_bTaeGut2.pat.W.v2_genomic.scaffold_lengths.txt
+
+
 ### Repeat masking the reference genome
