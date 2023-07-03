@@ -50,6 +50,6 @@ In progress...
 
 ### Assignment of B10K barn swallow genome scaffolds to chromosomes
 
-The [B10K barn swallow reference genome](https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/805/GCF_015227805.1_bHirRus1.pri.v2/GCF_015227805.1_bHirRus1.pri.v2_genomic.fna.gz) includes chromosome-length scaffolds, but which are not assigned to the passerine karyotype.
+The [B10K barn swallow reference genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_015227805.1) includes chromosome-length scaffolds, but which are not assigned to the passerine karyotype. Here, we'll establish synteny between scaffolds and chromosome-assigned scaffolds in the [zebra finch reference genome](https://www.ncbi.nlm.nih.gov/assembly/GCF_008822105.2/), and reformat the barn swallow scaffolds according to these assignments.
 
 ### Repeat masking the reference genome
