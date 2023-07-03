@@ -72,6 +72,18 @@ We'll process the input data slightly differently for data generated in 2018 and
 
 Format `./log/trimmomatic.2018.list` and `./log/trimmomatic.2021.list`.
 
+#### Run Trimmomatic
+
+Run `runTrimmomatic.2018.sh` to process 2018 fastq data.
+```
+nohup sh runTrimmomatic.2018.sh > ./log/runTrimmomatic.2018.log &
+```
+
+Run `runTrimmomatic.2021.sh` to process 2021. fastq data.
+```
+nohup sh runTrimmomatic.2021.sh > runTrimmomatic.2021.log &
+```
+
 
 
 ## Appendix
