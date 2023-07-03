@@ -170,6 +170,21 @@ Check on running progress.
 for i in ./log/GenotypeGVCFs.hirundo_rustica+smithii.allsites.raw.scaffold.list*.log; do echo $i; grep 'INFO' $i | tail -n 1; done
 ```
 
+### Variant filtering
+
+#### Hard filters
+
+#### Filter samples with high amounts of missing data
+
+#### Processing sex chromosomes
+
+#### Repeat masking
+
+#### Post-processing and additional filters for analysis
+
+
+
+
 
 
 
