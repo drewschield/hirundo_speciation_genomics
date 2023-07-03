@@ -84,6 +84,43 @@ Run `runTrimmomatic.2021.sh` to process 2021. fastq data.
 sh runTrimmomatic.2021.sh > runTrimmomatic.2021.log
 ```
 
+Run `trimmomatic` on outgroup H. smithii individual.
+```
+trimmomatic PE -phred33 -threads 16 ./fastq/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_1.fq.gz ./fastq/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_2.fq.gz ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_1_P.trim.fq.gz ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_1_U.trim.fq.gz ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_2_P.trim.fq.gz ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_2_U.trim.fq.gz LEADING:20 TRAILING:20 MINLEN:32 AVGQUAL:30
+```
+
+#### Remove unpaired filtered reads
+
+We won't map these.
+```
+cd fastq_filtered
+rm ./*U.trim.fq.gz
+cd ..
+```
+
+Analysis-read paired read data are in `fastq_filtered`.
+
+### Map reads using BWA
+
+We'll run BWA `mem` on each sample to map it to the reference genome.
+
+#### Run BWA on ingroup samples
+
+Format `bwa_mem.list` with all ingroup samples.
+
+The script `runBWAmem.sh` runs BWA `mem` and also indexes using `samtools`.
+```
+sh runBWAmem.sh > ./log/runBWAmem.log
+```
+
+#### Run BWA on outgroup H. smithii.
+
+```
+bwa mem -t 16 -R "@RG\tID:RS_5\tLB:Hirundo\tPL:illumina\tPU:NovaSeq6000\tSM:RS_5" Hirundo_rustica_bHirRus1.final.fasta ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_1_P.trim.fq.gz ./fastq_filtered/RS_5_USPD16098865-AK1579-AK402_HL7CWDSXX_L1_2_P.trim.fq.gz | samtools sort -@ 16 -O bam -T RS_5.temp -o ./bam/RS_5.bam -
+samtools index ./bam/RS_5.bam
+```
+
+Analysis-ready bam files are in `./bam`.
 
 
 ## Appendix
