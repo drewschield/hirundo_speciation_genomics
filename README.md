@@ -46,7 +46,13 @@ Note, I installed a number of these programs to my [conda](https://docs.conda.io
 
 This section includes details on steps to filter raw fastq data, map reads to the reference genome, call variants among samples, and filter variant calls. Raw read data are available from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/?term=PRJNA323498). Additional information about the reference genome and annotation can be found in the [Appendix](#appendix). 
 
+### Filter raw read data with Trimmomatic
 
+We'll use `Trimmomatic` to filter and quality trim raw read data, using the settings:
+* Remove 5' end bases if quality is below 20
+* Remove 3' end bases if quality is below 20
+* Minimum read length = 32
+* Remove reads if average quality is < 30
 
 
 ## Appendix
@@ -210,8 +216,8 @@ sudo perl ./configure
 ```
 
 These paths need to be entered during the configuration:
-	* /usr/local/trf409.linux64
-	* /usr/local/rmblast-2.11.0/bin
+* `/usr/local/trf409.linux64`
+* `/usr/local/rmblast-2.11.0/bin`
 
 #### Repeat mask the reference genome
 
