@@ -16,15 +16,15 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 
 The analysis sections below use the following software and dependencies and assume they are on the user path unless otherwise specified:
 
-* [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
+* [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
 * [bwa](http://bio-bwa.sourceforge.net/)
 * [htslib](http://www.htslib.org/)
-* [samtools](http://www.htslib.org/)
+* [Samtools](http://www.htslib.org/)
 * [bgzip](http://www.htslib.org/)
 * [tabix](http://www.htslib.org/)
 * [GATK](https://gatk.broadinstitute.org/hc/en-us)
 * [bcftools](http://www.htslib.org/)
-* [plink](https://www.cog-genomics.org/plink/)
+* [Plink](https://www.cog-genomics.org/plink/)
 * [vcftools](https://vcftools.github.io/index.html)
 * [bedtools](https://bedtools.readthedocs.io/en/latest/)
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
