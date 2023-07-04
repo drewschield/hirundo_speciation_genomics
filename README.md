@@ -265,6 +265,7 @@ tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
 ```
 bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.snps.chrZ.vcf.gz
 ```
+
 * Format `./log/sample.female.list`.
 
 * Run `ZchrFemaleHeterozygous.py` to identify and write positions of the Z chromosome with heterozygous genotype calls in any females.
@@ -345,6 +346,68 @@ tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz
 ```
 
 #### Post-processing and additional filters for analysis
+
+1. Parse chromosome-specific all-sites VCFs.
+
+* Set up environment
+```
+cd vcf
+mkdir chrom-specific
+cd ..
+```
+
+* Format chromosome-scaffold table for reference: `./log/chromosome-scaffold.table.txt`
+
+* Run `parseVCFchrW.sh` to parse W chromosome scaffolds.
+```
+sh parseVCFchrW.sh
+```
+
+* Run `parseVCFchrZ.sh` to parse Z chromosome scaffolds.
+```
+sh parseVCFchrZ.sh
+```
+
+* Run `parseVCFauto.sh` to parse autosome scaffolds.
+```
+sh parseVCFauto.sh
+```
+
+2. Extract biallelic SNPs.
+```
+bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
+bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz
+bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz
+```
+
+3. Extract SNPs with < 20% missing data.
+```
+bcftools view -i 'F_MISSING<0.2' -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.vcf.gz
+bcftools view -i 'F_MISSING<0.2' -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.vcf.gz
+bcftools view -i 'F_MISSING<0.2' -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.vcf.gz
+```
+
+4. Impose minor allele frequency and minor allele count filters.
+```
+bcftools view --threads 16 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.vcf.gz
+bcftools view --threads 16 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz
+bcftools view --threads 16 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz
+```
+
+5. Remove H. smithii outgroup.
+```
+bcftools view --threads 16 -s ^RS_5 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.ingroup.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.vcf.gz
+bcftools view --threads 16 -s ^RS_5 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.vcf.gz
+bcftools view --threads 16 -s ^RS_5 -c 2 -q 0.05:minor -m2 -M2 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.vcf.gz
+```
+
+#### Cleaning up
+
+These filtering steps produce many intermediate VCF files, especially in the initial parallel processing steps for raw and hard filtered VCFs. Delete these to save some disk space.
+```
+rm ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.*
+rm ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.*
+```
 
 [Back to top](#contents)
 
