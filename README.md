@@ -239,6 +239,43 @@ Females are hemizygous for the Z chromosome, and so cannot have heterozygous sit
 
 We'll begin by extracting VCF tables for chromosome-assigned autosome, Z, and W scaffolds, respectively. From here forward we'll also omit un-assigned scaffolds from analysis.
 
+1. Format autosome, Z chromosome, and W chromosome-assigned scaffold BED files.
+```
+./log/scaffold.assigned-autosome.bed
+./log/scaffold.assigned-chrZ.bed
+./log/scaffold.assigned-chrW.bed
+```
+
+2. Extract VCFs based on BED files.
+```
+bcftools view --threads 16 -R ./log/scaffold.assigned-autosome.bed -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.auto.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.vcf.gz
+bcftools view --threads 16 -R ./log/scaffold.assigned-chrZ.bed -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.vcf.gz
+bcftools view --threads 16 -R ./log/scaffold.assigned-chrW.bed -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.vcf.gz
+```
+
+3. Rename and index autosome all-sites VCF.
+```
+mv ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.auto.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
+```
+
+4. Mask female heterozygous sites on the Z chromosome.
+
+* Extract biallelic SNPs on Z-linked scaffolds.
+```
+bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.snps.chrZ.vcf.gz
+```
+
+
+
+
+
+
+
+
+
+
+
 
 #### Repeat masking
 
