@@ -261,26 +261,26 @@ tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
 
 4. Mask female heterozygous sites on the Z chromosome.
 
-Extract biallelic SNPs on Z-linked scaffolds.
+* Extract biallelic SNPs on Z-linked scaffolds.
 ```
 bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.snps.chrZ.vcf.gz
 ```
 
-Format `./log/sample.female.list`.
+* Format `./log/sample.female.list`.
 
-Run `ZchrFemaleHeterozygous.py` to identify and write positions of the Z chromosome with heterozygous genotype calls in any females.
+* Run `ZchrFemaleHeterozygous.py` to identify and write positions of the Z chromosome with heterozygous genotype calls in any females.
 ```
 gunzip ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz
 python ZchrFemaleHeterozygous.py ./log/sample.female.list ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.txt
 ```
 
-Convert output to BED format and index it as a GATK feature file.
+* Convert output to BED format and index it as a GATK feature file.
 ```
 awk 'BEGIN{OFS="\t"}{print $1,$2-1,$2}' ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.txt > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed
 ./gatk-4.0.8.1/gatk IndexFeatureFile --feature-file ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed
 ```
 
-Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
+* Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
 ```
 tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz
 ./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz --mask ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed --mask-name ZHET -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.filter.vcf.gz > ./log/GATK_VariantFiltration_hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.filter.log
@@ -290,28 +290,28 @@ tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz
 
 5. Mask female heterozygous sites on the W chromosome.
 
-Remove males from W chromosome VCF.
+* Remove males from W chromosome VCF.
 ```
 bcftools view --threads 16 -S ./log/sample.female.list -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.vcf.gz
 ```
 
-Extract W-linked SNPs.
+* Extract W-linked SNPs.
 ```
 bcftools view --threads 16 -m2 -M2 -U -v snps -O v -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz
 ```
 
-Identify heterozygous sites on the W chromosome.
+* Identify heterozygous sites on the W chromosome.
 ```
 python ZchrFemaleHeterozygous.py ./log/sample.female.list ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.vcf ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.txt
 ```
 
-Convert output to BED format and index it as a GATK feature file.
+* Convert output to BED format and index it as a GATK feature file.
 ```
 awk 'BEGIN{OFS="\t"}{print $1,$2-1,$2}' ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.txt > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed
 ./gatk-4.0.8.1/gatk IndexFeatureFile --feature-file ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed
 ```
 
-Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
+* Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
 ```
 tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz
 ./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz --mask ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed --mask-name WHET -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.filter.vcf.gz > ./log/GATK_VariantFiltration_hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.filter.log &
