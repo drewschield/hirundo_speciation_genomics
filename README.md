@@ -179,7 +179,7 @@ We'll filter to retain a set of high-quality SNP calls, while also maintaining a
 
 We have raw variant calls in 13 separate interval files from the step above. We'll also set hard filters on genotypes in parallel to reduce runtime, then merge the VCFs.
 
-_1._ Run GATK `VariantFiltration` to set hard filters.
+1. Run GATK `VariantFiltration` to set hard filters.
 ```
 ./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list1.vcf.gz -filter "QD < 2.0" --filter-name "QD2" -filter "FS > 60.0" --filter-name "FS60" -filter "MQ < 40.0" --filter-name "MQ40" -filter "MQRankSum < -12.5" --filter-name "MQRankSum-12.5" -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.list1.vcf.gz > ./log/GATK_VariantFiltration.scaffold.list1.log
 ./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list2.vcf.gz -filter "QD < 2.0" --filter-name "QD2" -filter "FS > 60.0" --filter-name "FS60" -filter "MQ < 40.0" --filter-name "MQ40" -filter "MQRankSum < -12.5" --filter-name "MQRankSum-12.5" -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.list2.vcf.gz > ./log/GATK_VariantFiltration.scaffold.list2.log
@@ -196,7 +196,7 @@ _1._ Run GATK `VariantFiltration` to set hard filters.
 ./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.raw.scaffold.list13.vcf.gz -filter "QD < 2.0" --filter-name "QD2" -filter "FS > 60.0" --filter-name "FS60" -filter "MQ < 40.0" --filter-name "MQ40" -filter "MQRankSum < -12.5" --filter-name "MQRankSum-12.5" -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.list13.vcf.gz > ./log/GATK_VariantFiltration.scaffold.list13.log
 ``` 
 
-2. Format `vcf.HardFilter.list` to direct to files to be merged.
+2. Format `./log/vcf.HardFilter.list` to direct to files to be merged.
 
 3. Run Picard `MergeVCFs` to merge the VCF files.
 ```
@@ -216,7 +216,29 @@ bcftools index --threads 48 -t ./vcf/hirundo_rustica+smithii.allsites.HardFilter
 
 #### Filter samples with high amounts of missing data
 
+1. Query a subset of the filtered VCF to quantify proportion of missing genotypes across samples.
+```
+bcftools view --threads 16 -r NC_053451.1 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.snps.chr1.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.vcf.gz > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.snps.chr1.log
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.snps.chr1.vcf.gz --missing-indv --out ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.snps.chr1
+rm ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.snps.chr1.vcf.gz
+```
+
+Based on this analysis, samples HRUWBM90116 and HRUWBM87931 had > 75% missing data.
+
+2. Format `./log/sample.remove.list`.
+
+3. Remove samples in list.
+```
+bcftools view --threads 16 -S ^./log/sample.remove.list -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.vcf.gz
+```
+
 #### Processing sex chromosomes
+
+Females are hemizygous for the Z chromosome, and so cannot have heterozygous sites on Z-linked scaffolds. We'll extract SNPs for Z-linked scaffolds, then identify SNPs in which any known females have heterozygous genotypes, then mask these sites in all individuals. We also want to remove males from the W chromosome, as they don't have one, and also to mask heterozygous sites on the W in females, since these can't exist.
+
+We'll begin by extracting VCF tables for chromosome-assigned autosome, Z, and W scaffolds, respectively. From here forward we'll also omit un-assigned scaffolds from analysis.
+
 
 #### Repeat masking
 
