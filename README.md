@@ -438,6 +438,8 @@ sh ./scripts/samtoolsStat.sh
 for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f1`; bases=`grep 'bases mapped (cigar):' $i | cut -f 3`; echo -e "$name\t$bases"; done
 ```
 
+[Back to top](#contents)
+
 ## PCA
 
 
