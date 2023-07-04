@@ -12,6 +12,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 
 * [Software and dependencies](#software-and-dependencies)
 * [Genome data processing and variant calling](#genome-data-processing-and-variant-calling)
+* [Mapping statistics](#mapping-statistics)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -46,6 +47,8 @@ Note, I installed a number of these programs to my [conda](https://docs.conda.io
 ## Genome data processing and variant calling
 
 This section includes details on steps to filter raw fastq data, map reads to the reference genome, call variants among samples, and filter variant calls. Raw read data are available from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/?term=PRJNA323498), and should be placed in the `fastq` subdirectory below. Additional information about the reference genome and annotation can be found in the [Appendix](#appendix). 
+
+Note: scripts used in this section are in the `scripts` directory and will need to be moved to the working directory.
 
 ### Set up environment
 
@@ -410,6 +413,8 @@ rm ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.*
 ```
 
 [Back to top](#contents)
+
+## Mapping statistics
 
 
 
