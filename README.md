@@ -48,7 +48,7 @@ Note, I installed a number of these programs to my [conda](https://docs.conda.io
 
 This section includes details on steps to filter raw fastq data, map reads to the reference genome, call variants among samples, and filter variant calls. Raw read data are available from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/?term=PRJNA323498), and should be placed in the `fastq` subdirectory below. Additional information about the reference genome and annotation can be found in the [Appendix](#appendix). 
 
-Note: scripts used in this section are in the `scripts` directory and will need to be moved to the working directory.
+Note: scripts used in this section are in the `scripts` directory (for tidiness) and will need to be moved to the working directory prior to running this part of the workflow.
 
 ### Set up environment
 
