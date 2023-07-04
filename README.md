@@ -261,23 +261,89 @@ tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
 
 4. Mask female heterozygous sites on the Z chromosome.
 
-* Extract biallelic SNPs on Z-linked scaffolds.
+Extract biallelic SNPs on Z-linked scaffolds.
 ```
 bcftools view --threads 16 -m2 -M2 -U -v snps -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.snps.chrZ.vcf.gz
 ```
 
+Format `./log/sample.female.list`.
 
+Run `ZchrFemaleHeterozygous.py` to identify and write positions of the Z chromosome with heterozygous genotype calls in any females.
+```
+gunzip ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf.gz
+python ZchrFemaleHeterozygous.py ./log/sample.female.list ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.vcf ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.txt
+```
 
+Convert output to BED format and index it as a GATK feature file.
+```
+awk 'BEGIN{OFS="\t"}{print $1,$2-1,$2}' ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.txt > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed
+./gatk-4.0.8.1/gatk IndexFeatureFile --feature-file ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed
+```
 
+Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
+```
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz
+./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.vcf.gz --mask ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.snps.FemaleZhetSites.bed --mask-name ZHET -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.filter.vcf.gz > ./log/GATK_VariantFiltration_hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.filter.log
+bcftools filter --threads 16 -e 'FILTER="ZHET"' --set-GTs . -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrZ.filter.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz
+```
 
+5. Mask female heterozygous sites on the W chromosome.
 
+Remove males from W chromosome VCF.
+```
+bcftools view --threads 16 -S ./log/sample.female.list -O z -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.vcf.gz
+```
 
+Extract W-linked SNPs.
+```
+bcftools view --threads 16 -m2 -M2 -U -v snps -O v -o ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz
+```
 
+Identify heterozygous sites on the W chromosome.
+```
+python ZchrFemaleHeterozygous.py ./log/sample.female.list ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.vcf ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.txt
+```
 
+Convert output to BED format and index it as a GATK feature file.
+```
+awk 'BEGIN{OFS="\t"}{print $1,$2-1,$2}' ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.txt > ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed
+./gatk-4.0.8.1/gatk IndexFeatureFile --feature-file ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed
+```
 
-
+Run GATK `VariantFiltration` to annotate female heterozygous sites and mask with `bcftools`.
+```
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz
+./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.vcf.gz --mask ./log/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.snps.FemaleHetSites.bed --mask-name WHET -O ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.filter.vcf.gz > ./log/GATK_VariantFiltration_hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.filter.log &
+bcftools filter --threads 16 -e 'FILTER="WHET"' --set-GTs . -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.HardFilter.recode.indv.chrW.female.filter.vcf.gz &
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz
+```
 
 #### Repeat masking
+
+The steps to annotate repeats using RepeatMaster are detailed in the [Appendix](#appendix).
+
+1. Index repeat BED file.
+```
+./gatk-4.0.8.1/gatk IndexFeatureFile --feature-file ./genome_annotation/repeatmasker/Hirundo_rustica_bHirRus1.final.fasta.repeat.bed
+```
+
+2. Annotate repeats using GATK `VariantFiltration`.
+```
+./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz --mask ./genome_annotation/repeatmasker/Hirundo_rustica_bHirRus1.final.fasta.repeat.bed --mask-name REP -O ./vcf/hirundo_rustica+smithii.allsites.final.auto.tmp-rep.vcf.gz > ./log/GATK_VariantFiltration_repeat-mask.hirundo_rustica+smithii.auto.log
+./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --mask ./genome_annotation/repeatmasker/Hirundo_rustica_bHirRus1.final.fasta.repeat.bed --mask-name REP -O ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.tmp-rep.vcf.gz > ./log/GATK_VariantFiltration_repeat-mask.hirundo_rustica+smithii.chrZ.log
+./gatk-4.0.8.1/gatk VariantFiltration -V ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz --mask ./genome_annotation/repeatmasker/Hirundo_rustica_bHirRus1.final.fasta.repeat.bed --mask-name REP -O ./vcf/hirundo_rustica+smithii.allsites.final.chrW.tmp-rep.vcf.gz > ./log/GATK_VariantFiltration_repeat-mask.hirundo_rustica+smithii.chrW.log
+```
+
+3. Recode repeats as missing genotypes and index VCFs.
+```
+bcftools filter --threads 24 -e 'FILTER="REP"' --set-GTs . -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto.tmp-rep.vcf.gz
+bcftools filter --threads 24 -e 'FILTER="REP"' --set-GTs . -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.tmp-rep.vcf.gz
+bcftools filter --threads 24 -e 'FILTER="REP"' --set-GTs . -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.tmp-rep.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.chrW.vcf.gz 
+```
 
 #### Post-processing and additional filters for analysis
 
