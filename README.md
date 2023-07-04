@@ -13,6 +13,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Software and dependencies](#software-and-dependencies)
 * [Genome data processing and variant calling](#genome-data-processing-and-variant-calling)
 * [Mapping statistics](#mapping-statistics)
+* [PCA](#pca)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -416,12 +417,28 @@ rm ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.*
 
 ## Mapping statistics
 
+### Set up environment
+```
+mkdir analysis
+cd analysis
+mkdir mapping_statistics
+cd ..
+```
 
+### Calculate mapping statistics
 
+Run `samtoolsStat.sh` from the `scripts` directory. The results are written to `./analysis/mapping_statistics`.
+```
+sh ./scripts/samtoolsStat.sh 
+```
 
+### Parse number of bases mapped per sample
 
+```
+for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f1`; bases=`grep 'bases mapped (cigar):' $i | cut -f 3`; echo -e "$name\t$bases"; done
+```
 
-
+## PCA
 
 
 
