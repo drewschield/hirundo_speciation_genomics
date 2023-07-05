@@ -1130,16 +1130,37 @@ cp *.fam original_fam
 
 Note: we've added randomized phenotypes to the .fam files for the full dataset.
 
-| Dataset | File | n1     | n2     | n3    | n4   | n5            |
-|---------|------|--------|--------|-------|------|---------------|
-| Hybrid  | plum | breast |        |       |      |               |
-| Hybrid  | tail | tail   |        |       |      |               |
-| Full    | plum | throat | breast | belly | vent | breast random |
-| Full    | tail | tail   |        |       |      |               |
-| Male    | plum | throat | breast | belly | vent |               |
-| Male    | tail | tail   |        |       |      |               |
-| Female  | plum | throat | breast | belly | vent |               |
-| Female  | tail | tail   |        |       |      |               |
+| Dataset | File | n1     | n2          | n3    | n4   | n5            |
+|---------|------|--------|-------------|-------|------|---------------|
+| Hybrid  | plum | breast |             |       |      |               |
+| Hybrid  | tail | tail   |             |       |      |               |
+| Full    | plum | throat | breast      | belly | vent | breast random |
+| Full    | tail | tail   | tail random |       |      |               |
+| Male    | plum | throat | breast      | belly | vent |               |
+| Male    | tail | tail   |             |       |      |               |
+| Female  | plum | throat | breast      | belly | vent |               |
+| Female  | tail | tail   |             |       |      |               |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
