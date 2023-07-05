@@ -1419,24 +1419,154 @@ smc++ plot rustica-SMC.pdf analysis/model.final.json -g 1 -c
 ```
 This writes `rustica-SMC.csv` and `rustica-SMC.pdf`. The .csv file can be used in downstream `pyrho` analysis.
 
+### Recombination rate inference in pyrho
 
+Here, we will install `pyrho`, run it on test data to ensure the build is working properly on the system, then perform analysis on the barn swallows.
 
+#### Install pyrho
 
+`pyrho` relies on several [specific dependencies](https://github.com/popgenmethods/pyrho). We'll install everything within a virtual environment.
 
+1. Set up install directory.
+```
+cd ~/hirundo_speciation_genomics/tmp/
+mkdir pyrho-install
+cd pyrho-install
+```
+2. Create and activate new virtual environment for `pyrho`.
+```
+virtualenv -p /usr/bin/python3 pyrho-env
+source pyrho-env/bin/activate
+```
+3. Install `ldpop` dependency.
+```
+git clone https://github.com/popgenmethods/ldpop.git ldpop
+pip install ldpop/
+```
+4. Install `cython`.
+```
+pip install cython
+```
+5. Install msprime and libraries.
+```
+sudo apt-get install python-dev libgsl0-dev
+python3 -m pip install msprime --no-binary msprime
+```
+6. Install `pyrho`.
+```
+git clone https://github.com/popgenmethods/pyrho.git pyrho
+pip install pyrho/
+```
+7. Check that install was successful.
+```
+python -m pytest pyrho/tests/tests.py
+```
 
+#### Test pyrho on example data
 
+```
+cd ./analysis/pyrho/
+mkdir test_example
+cd test_example
+mkdir out
+mkdir analysis
+git clone https://github.com/popgenmethods/pyrho.git pyrho
+```
+1. Precompute a lookup table.
+```
+pyrho make_table -n 20 -N 25 --mu 1.25e-8 --logfile . --outfile ACB_n_20_N_40_lookuptable.hdf --approx --smcpp_file ACB_pop_sizes.csv --decimate_rel_tol 0.1
+```
+2. Run `hyperparam` to find hyperparameters that are a good fit to input demography.
+```
+pyrho hyperparam -n 20 --mu 1.25e-8 --blockpenalty 50,100 --windowsize 25,50 --logfile . --tablefile ACB_n_20_N_40_lookuptable.hdf --num_sims 3 --smcpp_file ACB_pop_sizes.csv --outfile ACB_hyperparam_results.txt 
+```
+3. Run `optimize` to estimate fine-scale recombination map.
+```
+pyrho optimize --tablefile ACB_n_20_N_40_lookuptable.hdf --vcffile ACB_chr_1_subset.vcf.gz --outfile ACB_chr_1_subset.rmap --blockpenalty 50 --windowsize 50 --logfile .
+```
 
+#### Pyrho analysis on barn swallow data
 
+Now we're set up to run pyrho on each of the ordered chromosomes in the genome. We'll extract chromosome-specific VCFs for rustica to analyze.
 
+```
+cd ./analysis/pyrho
+mkdir out
+mkdir analysis
+mkdir vcf
+```
+1. Format `chromosome-scaffold.auto.table.txt`.
+2. Format `chromosome.list` (including Z chromosome).
+3. Extract chromosome-specific VCFs.
+```
+while read i; do scaff=`echo "$i" | cut -f 1`; chrom=`echo "$i" | cut -f 2`; bcftools view --threads 16 -r $scaff -O z -o ./vcf/rustica.allsites.final.$chrom.snps.miss02.mac2.vcf.gz ../smc++/vcf/rustica.allsites.final.auto.snps.miss02.mac2.vcf.gz; done < ./chromosome-scaffold.auto.table.txt
+bcftools view --threads 16 -S popmap.rustica.karasuk -c 2 -O z -o ./vcf/rustica.allsites.final.chrZ.snps.miss02.mac2.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz
+```
+4. Generate lookup tables.
+```
+source ~/hirundo_speciation_genomics/tmp/pyrho-install/pyrho-env/bin/activate
+pyrho make_table --numthreads 24 -n 62 -N 78 --mu 2.3e-9 --logfile . --outfile ./lookup/rustica_n_62_N_78_lookuptable.hdf --approx --smcpp_file ../smc++/rustica-SMC.csv
+```
+5. Find hyperparameter settings that fit the demography.
+```
+pyrho hyperparam --numthreads 24 -n 62 --mu 2.3e-9 --smcpp_file ../smc++/rustica-SMC.csv --blockpenalty 20,25,50,100 --windowsize 25,50 --logfile . --tablefile ./lookup/rustica_n_62_N_78_lookuptable.hdf --num_sims 3 --outfile ./hyperparam/rustica_hyperparam_results.txt 
+```
+A window size of 50 and block penalty of 25 look reasonable.
+6. Run `optimize` to estimate fine-scale recombination rates.
+```
+for chrom in `cat chromosome.list`; do pyrho optimize --numthreads 24 --tablefile ./lookup/rustica_n_62_N_78_lookuptable.hdf --vcffile ./vcf/rustica.allsites.final.$chrom.snps.miss02.mac2.vcf.gz --outfile ./results/rustica.$chrom.rmap --blockpenalty 25 --windowsize 50 --ploidy 2 --logfile .; done
+```
 
+#### Format results
 
+1. Format window BED files.
+```
+grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.auto.genome | bedtools makewindows -g - -w 1000000 -s 100000 > ./Hirundo_rustica_bHirRus1.final.1Mb-100kb.bed; grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.chrZ.genome | bedtools makewindows -g - -w 1000000 -s 100000 >> ./Hirundo_rustica_bHirRus1.final.1Mb-100kb.bed
+grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.auto.genome | bedtools makewindows -g - -w 1000000 > ./Hirundo_rustica_bHirRus1.final.1Mb.bed; grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.chrZ.genome | bedtools makewindows -g - -w 1000000 >> ./Hirundo_rustica_bHirRus1.final.1Mb.bed
+grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.auto.genome | bedtools makewindows -g - -w 100000 > ./Hirundo_rustica_bHirRus1.final.100kb.bed; grep 'NC' ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.chrZ.genome | bedtools makewindows -g - -w 100000 >> ./Hirundo_rustica_bHirRus1.final.100kb.bed
+```
+2. Format `chromosome-scaffold.table.txt` (including Z chromosome).
+3. Concatenate the recombination map.
+```
+while read i; do scaff=`echo "$i" | cut -f 1`; chrom=`echo "$i" | cut -f 2`; awk -v var=$scaff 'BEGIN{OFS="\t"}{print var,$1,$2,$3}' ./results/rustica.$chrom.rmap >> ./rustica.all.rmap; done < ./chromosome-scaffold.table.txt
+```
+4. Calculate mean recombination rate in windows.
+```
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.1Mb-100kb.txt; bedtools map -a ./Hirundo_rustica_bHirRus1.final.1Mb-100kb.bed -b ./rustica.all.rmap -o mean -c 4 >> rustica.rmap.1Mb-100kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.1Mb.txt; bedtools map -a ./Hirundo_rustica_bHirRus1.final.1Mb.bed -b ./rustica.all.rmap -o mean -c 4 >> rustica.rmap.1Mb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.100kb.txt; bedtools map -a ./Hirundo_rustica_bHirRus1.final.100kb.bed -b ./rustica.all.rmap -o mean -c 4 >> rustica.rmap.100kb.txt
+```
+5. Format sliding window BED files for specific chromosomes.
+```
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chrZ-NC_053488.1.bed
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chrZ-NC_053488.1.bed
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chrZ-NC_053488.1.bed
+```
+6. Calculate mean recombination rate in sliding windows on specific chromosomes.
+```
+bedtools sort -i rustica.all.rmap > rustica.all.sort.rmap
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr1A-NC_053453.1.100kb-10kb.txt; bedtools map -a window.100kb-10kb.chr1A-NC_053453.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr1A-NC_053453.1.100kb-10kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr2-NC_053450.1.100kb-10kb.txt; bedtools map -a window.100kb-10kb.chr2-NC_053450.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr2-NC_053450.1.100kb-10kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chrZ-NC_053488.1.100kb-10kb.txt; bedtools map -a window.100kb-10kb.chrZ-NC_053488.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chrZ-NC_053488.1.100kb-10kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr1A-NC_053453.1.50kb-5kb.txt; bedtools map -a window.50kb-5kb.chr1A-NC_053453.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr1A-NC_053453.1.50kb-5kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr2-NC_053450.1.50kb-5kb.txt; bedtools map -a window.50kb-5kb.chr2-NC_053450.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr2-NC_053450.1.50kb-5kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chrZ-NC_053488.1.50kb-5kb.txt; bedtools map -a window.50kb-5kb.chrZ-NC_053488.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chrZ-NC_053488.1.50kb-5kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr1A-NC_053453.1.10kb-1kb.txt; bedtools map -a window.10kb-1kb.chr1A-NC_053453.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr1A-NC_053453.1.10kb-1kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chr2-NC_053450.1.10kb-1kb.txt; bedtools map -a window.10kb-1kb.chr2-NC_053450.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chr2-NC_053450.1.10kb-1kb.txt
+echo -e "chrom\tstart\tend\trate" > rustica.rmap.chrZ-NC_053488.1.10kb-1kb.txt; bedtools map -a window.10kb-1kb.chrZ-NC_053488.1.bed -b rustica.all.sort.rmap -o mean -c 4 >> rustica.rmap.chrZ-NC_053488.1.10kb-1kb.txt
+```
 
+#### Summarize results
 
+Run `./R/pyrho.R` to summarize and plot variation in genome-wide recombination rate.
 
-
-
-
-
+[Back to top](#contents)
 
 
 
