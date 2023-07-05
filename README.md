@@ -669,7 +669,7 @@ sh runBWAmem.sh > ./log/runBWAmem.log
 
 4. Format `./bam/bam.list` file.
 
-#### Call variants
+#### Call and filter variants
 
 1. Temporarily increase the limit on number of open files to accommodate bam files.
 ```
@@ -686,10 +686,52 @@ cd ..
 
 Note: the '-a "DP,AD"' flag is very important; `mpileup` does not output individual per-base  depth statistics by default, and we will use a DP filter downstream to recode and cull missing data among samples, and ultimately to filter SNPs with high proportions of missing data.
 
+3. Format `scaff.list` with list of scaffolds to retain.
 
+4. Run bcftools `+setGT` to set low depth SNPs as missing.
+```
+bcftools +setGT ./vcf/hirundo_rustica.rad.snps.tmp.vcf.gz -- -t q -n . -i 'FMT/DP<5' | bcftools view --threads 16 -O z -o ./vcf/hirundo_rustica.rad.snps.tmp.missing.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica.rad.snps.tmp.missing.vcf.gz
+```
 
+5. Run bcftools `filter` to filter to ordered autosomes and remove SNPs with > 20% missing data.
+```
+bcftools view --threads 16 -R scaff.list -m2 -M2 -U -v snps -i 'F_MISSING<0.2' -O z -o ./vcf/hirundo_rustica.rad.snps.auto.miss02.vcf.gz ./vcf/hirundo_rustica.rad.snps.tmp.missing.vcf.gz
+tabix -p vcf ./vcf/hirundo_rustica.rad.snps.auto.miss02.vcf.gz
+```
 
+6. Extract SNP data for H. smithii.
+```
+bcftools view --threads 16 -s RS_5 -O z -o ./vcf/hirundo_smithii.auto.snps.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.vcf.gz
+tabix -p vcf ./vcf/hirundo_smithii.auto.snps.vcf.gz 
+```
 
+7. Format list of paths to VCFs to merge `vcf.merge.list`.
+
+8. Run bcftools `merge` to combine ingroup and outgroup VCFs and filter to retain SNPs with < 20% missing data.
+```
+bcftools merge --threads 16 -l vcf.merge.list | bcftools view --threads 16 -m2 -M2 -U -v snps -i 'F_MISSING<0.2' -O z -o ./vcf/hirundo_rustica+smithii.rad.snps.tmp.vcf.gz
+```
+
+9. Write SNP positions where H. smithii has missing data to a file.
+```
+bcftools view -H -s RS_5 ./vcf/hirundo_rustica+smithii.rad.snps.tmp.vcf.gz | grep -v "0/1" | grep -v "0/0" | grep -v "1/1" | cut -d$'\t' -f1,2 > snp.remove.list
+```
+
+10. Remove SNPs with missing genotypes for outgroup H. smithii and thin to retain a single SNP per RAD locus.
+```
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.rad.snps.tmp.vcf.gz --exclude-positions snp.remove.list --thin 10000 --recode --stdout | bgzip -c > ./vcf/hirundo_rustica+smithii.rad.snps.dadi.vcf.gz
+```
+
+11. Write a simplified VCF (to be read into polarization script).
+```
+(bcftools view -h ./vcf/hirundo_rustica+smithii.rad.snps.dadi.vcf.gz; bcftools query -f "%CHROM\\t%POS\\t%ID\\t%REF\\t%ALT\\t%QUAL\\t%FILTER\\t%INFO\\tGT\\t[%GT\\t]\\n" ./vcf/hirundo_rustica+smithii.rad.snps.dadi.vcf.gz) | cat | bcftools view -m2 -M2 -v snps -O z -o ./vcf/hirundo_rustica+smithii.rad.snps.dadi.fix.vcf.gz
+```
+
+12. Polarize VCF by outgroup using the script written by Kristian Ullrich available [here](https://github.com/kullrich/bio-scripts/blob/master/vcf/polarizeVCFbyOutgroup.py).
+```
+python polarizeVCFbyOutgroup.py -vcf ./vcf/hirundo_rustica+smithii.rad.snps.dadi.fix.vcf.gz -out ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -ind 1 -add
+```
 
 
 
