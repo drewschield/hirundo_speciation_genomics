@@ -17,6 +17,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [ADMIXTURE](#admixture)
 * [Hybrid index and heterozygosity](#hybrid-index-and-heterozygosity)
 * [Demographic inference](#demographic-inference)
+* [Genotype-phenotype associations](#genotype-phenotype-associations)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -1010,7 +1011,7 @@ cd ..
 
 [Back to top](#contents)
 
-
+## Genotype-phenotype associations
 
 
 
