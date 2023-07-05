@@ -667,7 +667,24 @@ cut -f1 sample.filter.popmap > sample.filter.list
 sh runBWAmem.sh > ./log/runBWAmem.log
 ```
 
+4. Format `./bam/bam.list` file.
 
+#### Call variants
+
+1. Temporarily increase the limit on number of open files to accommodate bam files.
+```
+ulimit -n 1000
+```
+
+2. Call variants using bcftools `mpileup` and `call`.
+```
+cd ./bam
+bcftools mpileup --threads 16 -Ou -B -a "DP,AD" -b bam.list -f ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.fasta | bcftools call --threads 16 -c -v -V indels -f "GQ" -Oz -o ../vcf/hirundo_rustica.rad.snps.tmp.vcf.gz
+tabix -p vcf ../hirundo_rustica.rad.snps.tmp.vcf.gz
+cd ..
+```
+
+Note: the '-a "DP,AD"' flag is very important; `mpileup` does not output individual per-base  depth statistics by default, and we will use a DP filter downstream to recode and cull missing data among samples, and ultimately to filter SNPs with high proportions of missing data.
 
 
 
