@@ -1081,9 +1081,11 @@ tabix -p vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW
 
 ### Format sample lists for various analyses
 
-There are cases where hybrids have incomplete phenotype matrices. `GEMMA` requires complete data, so we'll downsample our imputed genotypes accordingly.
+There are cases where samples have incomplete phenotype matrices. `GEMMA` requires complete data, so we'll downsample our imputed genotypes accordingly.
 
-
+Sample sizes:
+* Hybrid ventral color _n_ = 159
+* Hybrid tail streamer length _n_ = 151
 
 
 
