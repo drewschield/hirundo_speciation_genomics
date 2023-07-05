@@ -637,7 +637,35 @@ We'll run the analysis in R using the script `./R/introgress.R`.
 
 We'll infer two-population demographic histories and the relative timing of secondary contact between parental populations using modifications to `dadi` described in [Rougemont et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) and available via [GitHub](https://github.com/QuentinRougemont/DemographicInference). Preliminary analyses revealed that our sample sizes from the whole genome dataset were insufficient to resolve demographic histories following very recent divergence (consistent with simulation-based results from [Robinson et al. 2014](https://bmcecolevol.biomedcentral.com/articles/10.1186/s12862-014-0254-4)). To capitalize on a larger sample size, we'll reanalyze RADseq data from [Scordato et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14276) and [Scordato et al. 2020](https://onlinelibrary.wiley.com/doi/full/10.1111/ele.13420), which were demutiplexed and quality trimmed as described in [Schield et al. 2021](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.15885).
 
+### Set up environment
+```
+cd ./analysis
+mkdir dadi
+cd dadi
+mkdir fastq_filtered
+mkdir bam
+mkdir gvcf
+mkdir vcf
+mkdir log
+```
 
+### Process RAD data and call variants with outgroup
+
+The filtered fastq data for the RADseq data from previous studies need to be in `./fastq_filtered`. We already have a gVCF for the H. smithii outgroup, which we will incorporate later.
+
+#### Map RAD data to the reference genome
+
+1. Format `sample.filter.popmap`.
+
+2. Format `sample.filter.list`.
+```
+cut -f1 sample.filter.popmap > sample.filter.list
+```
+
+3. Run `runBWAmem.sh` to map to the reference.
+```
+sh runBWAmem.sh > ./log/runBWAmem.log
+```
 
 
 
