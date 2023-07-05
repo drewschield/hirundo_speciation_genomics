@@ -14,6 +14,8 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Genome data processing and variant calling](#genome-data-processing-and-variant-calling)
 * [Mapping statistics](#mapping-statistics)
 * [PCA](#pca)
+* [ADMIXTURE](#admixture)
+* [Hybrid index and heterozygosity](#hybrid-index-and-heterozygosity)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -490,12 +492,48 @@ We'll run the PCA in R using the script `./R/pca.R`
 
 ## ADMIXTURE
 
+We'll estimate individual admixture proportions between one or more genetic clusters using `admixture`.
 
+### Set up environment
+```
+cd ./analysis/
+mkdir admixture
+cd admixture
+mkdir input
+```
 
+#### Convert VCF to Plink input format
+```
+plink --vcf ../pca/hirundo_rustica+smithii.allsites.final.snps.miss02.maf1.ingroup.indv.auto+chrZ.vcf.gz --make-bed --out hirundo.auto+chrZ --allow-extra-chr --recode12
+```
 
+#### Fix formatting for ADMIXTURE
 
+The program can't take non-integer scaffold names.
+```
+sed -i.bak -e 's/NC_0//g' ./input/hirundo.auto+chrZ.bim
+sed -i.bak -e 's/NW_0//g' ./input/hirundo.auto+chrZ.bim
+sed -i.bak -e 's/\.1//g' ./input/hirundo.auto+chrZ.bim
+sed -i.bak -e 's/NC_0//g' ./input/hirundo.auto+chrZ.map
+sed -i.bak -e 's/NW_0//g' ./input/hirundo.auto+chrZ.map
+sed -i.bak -e 's/\.1//g' ./input/hirundo.auto+chrZ.map
+```
 
+#### Perform analysis
 
+Run `runAdmixture.sh` to run ADMIXTURE across a series of K values 1-10.
+```
+sh runAdmixture.sh ./input/hirundo.auto+chrZ.ped
+```
+
+#### Evaluate K model with lowest cross-validation error.
+```
+grep -h CV log*.out
+```
+
+[Back to top](#contents)
+
+## Hybrid index and heterozygosity
 
 
 
