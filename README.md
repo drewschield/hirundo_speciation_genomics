@@ -1200,6 +1200,107 @@ gemma -bfile ./input/gwas.female.plum -k ./output/gemma.female.plum.cXX.txt -lmm
 
 #### Prune the results files
 
+The output files for LMMs are large, so we can prune these down considerably by filtering out SNPs with a -log10(Wald P-value) < 2 (primarily for plotting purposes).
+
+```
+mkdir lmm_full_prune
+cd output
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.hybrid-breast-bright.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.hybrid-breast-bright.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.hybrid-tail-streamer.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.hybrid-tail-streamer.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.full-tail-streamer.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.full-tail-streamer.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.full-breast-bright.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.full-breast-bright.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.full-tail-streamer-random.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.full-tail-streamer-random.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.full-breast-bright-random.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.full-breast-bright-random.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.male-tail-streamer.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.male-tail-streamer.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.male-breast-bright.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.male-breast-bright.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.female-tail-streamer.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.female-tail-streamer.assoc.prune.txt
+awk '{if (-log($13)/log(10)>=2) print $0}' ./gwas_full_lmm.female-breast-bright.assoc.txt | grep -v 'NW_' > ../lmm_full_prune/gwas_full_lmm.female-breast-bright.assoc.prune.txt
+cd ..
+```
+
+#### Parse significant SNPs
+
+To enable searching of genome features associated with significant SNPs, we'll parse SNPs with a Wald P-value < 0.05 after Bonferroni correction.
+
+Table of SNPs in each model:
+| Trait         | Dataset | SNPs    |
+|---------------|---------|---------|
+| ventral color | hybrid  | 9033285 |
+| ventral color | full    | 9311628 |
+| ventral color | male    | 8851265 |
+| ventral color | female  | 8757718 |
+| tail streamer | hybrid  | 8870504 |
+| tail streamer | full    | 9246603 |
+| tail streamer | male    | 8743581 |
+| tail streamer | female  | 8773176 |
+
+```
+mkdir significant
+cd output
+awk '{if ($13 < (0.05/9033285)) print $0}' ./gwas_full_lmm.hybrid-breast-bright.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.hybrid-breast-bright.assoc.sig.txt
+awk '{if ($13 < (0.05/8870504)) print $0}' ./gwas_full_lmm.hybrid-tail-streamer.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.hybrid-tail-streamer.assoc.sig.txt
+awk '{if ($13 < (0.05/9311628)) print $0}' ./gwas_full_lmm.full-tail-streamer.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.full-tail-streamer.assoc.sig.txt
+awk '{if ($13 < (0.05/9246603)) print $0}' ./gwas_full_lmm.full-breast-bright.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.full-breast-bright.assoc.sig.txt
+awk '{if ($13 < (0.05/9311628)) print $0}' ./gwas_full_lmm.full-tail-streamer-random.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.full-tail-streamer-random.assoc.sig.txt
+awk '{if ($13 < (0.05/9246603)) print $0}' ./gwas_full_lmm.full-breast-bright-random.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.full-breast-bright-random.assoc.sig.txt
+awk '{if ($13 < (0.05/8851265)) print $0}' ./gwas_full_lmm.male-tail-streamer.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.male-tail-streamer.assoc.sig.txt
+awk '{if ($13 < (0.05/8743581)) print $0}' ./gwas_full_lmm.male-breast-bright.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.male-breast-bright.assoc.sig.txt
+awk '{if ($13 < (0.05/8757718)) print $0}' ./gwas_full_lmm.female-tail-streamer.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.female-tail-streamer.assoc.sig.txt
+awk '{if ($13 < (0.05/8773176)) print $0}' ./gwas_full_lmm.female-breast-bright.assoc.txt | grep -v 'NW_' > ../significant/gwas_full_lmm.female-breast-bright.assoc.sig.txt
+cd ..
+```
+
+#### Query genome annotation with significant GWA SNPs
+```
+mkdir annotation
+mkdir significant_annotation
+cd annotation
+```
+
+1. Make 'gene' and 'exon' GFF files from the full genomic GFF annotation in `~/hirundo_speciation_genomics/genome_annotation`.
+
+```
+$awk '{if ($3 == "gene") print $0}' ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gff > ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gene.gff
+$awk '{if ($3 == "exon") print $0}' ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gff | bedtools sort -i - > ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.exon.gff
+```
+
+2. Convert significant SNP tables to BED format.
+```
+cd ./significant
+for i in *.sig.txt; do iname=${i%.txt}; tail -n+2 $i | awk 'BEGIN{OFS="\t"}{print $1,$3-1,$3,$13}' | bedtools sort -i - > $iname.bed; done
+for i in *-random.assoc.sig.txt; do iname=${i%.txt}; tail -n+2 $i | awk 'BEGIN{OFS="\t"}{print $1,$3-1,$3,$13}' | bedtools sort -i - > $iname.bed; done
+```
+
+3. Run bedtools `intersect` to find overlaps between significant SNPs and genes.
+```
+for i in *.sig.bed; do iname=${i%.bed}; echo -e "chrom-snp\tstart-snp\tend-snp\tWaldP\tchrom-gene\tstart-gene\tend-gene\tstrand\tfeature" > ../significant_annotation/$iname.gene-intersect.txt; bedtools intersect -wo -a $i -b ../annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gene.sort.gff | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$5,$8,$9,$11,$13}' >> ../significant_annotation/$iname.gene-intersect.txt; done
+for i in *-random.assoc.sig.bed; do iname=${i%.bed}; echo -e "chrom-snp\tstart-snp\tend-snp\tWaldP\tchrom-gene\tstart-gene\tend-gene\tstrand\tfeature" > ../significant_annotation/$iname.gene-intersect.txt; bedtools intersect -wo -a $i -b ../annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gene.sort.gff | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$5,$8,$9,$11,$13}' >> ../significant_annotation/$iname.gene-intersect.txt; done
+```
+
+4. Run bedtools `intersect` to find genes within 50 kb of significant SNPs.
+```
+for i in *.sig.bed; do iname=${i%.bed}; echo -e "chrom-snp\tstart-snp\tend-snp\tWaldP\tchrom-gene\tstart-gene\tend-gene\tstrand\tfeature" > ../significant_annotation/$iname.gene-intersect+50kb.txt; awk '{OFS="\t"}{print $1,$2-50000,$3+50000,$4}' $i | awk '{OFS="\t"}{print($1,$2<0?0:$2,$3,$4)}' | bedtools intersect -wo -a - -b ../annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gene.sort.gff | awk 'BEGIN{OFS="\t"}{print $1,$2+50000,$3-50000,$4,$5,$8,$9,$11,$13}' >> ../significant_annotation/$iname.gene-intersect+50kb.txt; done
+for i in *-random.assoc.sig.bed; do iname=${i%.bed}; echo -e "chrom-snp\tstart-snp\tend-snp\tWaldP\tchrom-gene\tstart-gene\tend-gene\tstrand\tfeature" > ../significant_annotation/$iname.gene-intersect+50kb.txt; awk '{OFS="\t"}{print $1,$2-50000,$3+50000,$4}' $i | awk '{OFS="\t"}{print($1,$2<0?0:$2,$3,$4)}' | bedtools intersect -wo -a - -b ../annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.gene.sort.gff | awk 'BEGIN{OFS="\t"}{print $1,$2+50000,$3-50000,$4,$5,$8,$9,$11,$13}' >> ../significant_annotation/$iname.gene-intersect+50kb.txt; done
+```
+
+5. Annotation of genic, coding versus noncoding significant SNPs.
+```
+tail -n+2 gwas_full_lmm.hybrid-breast-bright.assoc.sig.gene-intersect.txt | awk 'BEGIN{OFS="\t"}{print $1,$2,$3}' | bedtools closest -d -t first -a - -b ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.exon.gff > gwas_full_lmm.hybrid-breast-bright.assoc.sig.gene-intersect.exon-distance.txt
+tail -n+2 gwas_full_lmm.hybrid-tail-streamer.assoc.sig.gene-intersect.txt | awk 'BEGIN{OFS="\t"}{print $1,$2,$3}' | bedtools closest -d -t first -a - -b ~/hirundo_speciation_genomics/genome_annotation/GCF_015227805.1_bHirRus1.pri.v2_genomic.exon.gff > gwas_full_lmm.hybrid-tail-streamer.assoc.sig.gene-intersect.exon-distance.txt
+```
+
+#### Extract results for specific chromosomes
+```
+mkdir lmm_full_chrom
+for gwas in ./output/gwas_full_lmm*; do iname=${gwas%.txt}; fix=`echo $iname | cut -d'/' -f3`; for chrom in chr1A-NC_053453.1 chr2-NC_053450.1 chrZ-NC_053488.1; do scaff=`echo $chrom | cut -d'-' -f2`; head -n1 $gwas > ./lmm_full_chrom/$fix.$chrom.txt; grep -w $scaff $gwas >> ./lmm_full_chrom/$fix.$chrom.txt; done; done
+rm ./lmm_full_chrom/*.log.*
+```
+
+#### Statistical summary
+
+To summarize and plot the results, run `./R/gemma_LMM.R`, which also uses the `chr_rename.txt` file.
+
+[Back to top](#contents)
 
 
 
