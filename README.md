@@ -18,6 +18,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Hybrid index and heterozygosity](#hybrid-index-and-heterozygosity)
 * [Demographic inference](#demographic-inference)
 * [Genotype-phenotype associations](#genotype-phenotype-associations)
+* [Recombination rate](#recombination-rate)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -45,6 +46,8 @@ The analysis sections below use the following software and dependencies and assu
 * [easySFS](https://github.com/isaacovercast/easySFS)
 * [GEMMA](https://github.com/genetics-statistics/GEMMA)
 * [Beagle](https://faculty.washington.edu/browning/beagle/beagle.html)
+* [SMC++](https://github.com/popgenmethods/smcpp)
+* [pyrho](https://github.com/popgenmethods/pyrho)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
@@ -1302,23 +1305,119 @@ To summarize and plot the results, run `./R/gemma_LMM.R`, which also uses the `c
 
 [Back to top](#contents)
 
+## Recombination rate
 
+We will estimate recombination rate variation across the genome using `pyrho`, which makes use of a population size history inferred using `SMC++`.
 
+### Set up environment
+```
+cd ./analysis/
+mkdir smc++
+mkdir pyrho
+```
 
+### Population size inference in SMC++
 
+We will use information about population history (i.e., population size at epoch times) to inform recombination rate analysis. SMC++ can infer population history from multiple samples and unphased genotypes. It is also capable of inferring population split times when two populations are analyzed together. Here, we will install SMC++, run it on test data to ensure the build is working properly on the system, then perform analysis on the barn swallows, with the goal of providing a population history to downstream recombination rate inference.
 
+#### Install SMC++
 
+`SMC++` relies on a few [specific dependencies](https://github.com/popgenmethods/smcpp#installation-instructions). We'll install everything together in a virtual environment.
 
+1. Set up install directory
+```
+cd ~/hirundo_speciation_genomics/tmp/
+mkdir smc++-install
+cd smc++-install
+```
+2. Install Python 3.8 and libraries
+```
+sudo apt install python3.8
+sudo apt-get install python3.8-dev
+```
+3. Create and activate virtual environment for `SMC++`.
+```
+virtualenv -p /usr/bin/python3.8 smc++-env
+source smc++-env/bin/activate
+```
+4. Install library requirements.
+```
+sudo apt-get install -y python3-dev libgmp-dev libmpfr-dev libgsl0-dev
+```
+5. Install `SMC++`.
+```
+pip install git+https://github.com/popgenmethods/smcpp
+```
+6. Test that the build worked in the virtual environment.
+```
+smc++ vcf2smc -h
+```
 
+#### Test SMC++ on example data
+1. Clone repository with example data.
+```
+cd ./analysis/smc++
+mkdir test_example
+cd test_example
+mkdir out
+mkdir analysis
+git clone https://github.com/popgenmethods/smcpp
+```
+2. Convert VCF to SMC format.
+```
+source ~/hirundo_speciation_genomics/tmp/smc++-env/bin/activate
+smc++ vcf2smc ../smcpp/example/example.vcf.gz out/example.smc.gz 1 Pop1:msp_0,msp_1
+```
+3. Fit the model using `estimate`.
+```
+smc++ estimate -o analysis/ 1.25e-8 out/example.smc.gz
+```
+4. Visualize the results using `plot`.
+```
+smc++ plot plot.pdf analysis/model.final.json -c
+```
 
+#### SMC++ analysis on the barn swallow data
 
+We need a representative population for downstream recombination rate estimation. To avoid issues related to population substructure, we'll analyze rustica from Karasuk, Russia (n = 10). We'll perform analysis using information from all autosomes.
 
+```
+cd ./analysis/smc++
+mkdir out
+mkdir analysis
+mkdir vcf
+```
 
-
-
-
-
-
+1. Format `popmap.rustica.karasuk`.
+2. Extract random 5 'distinguished' samples to iterate SMC++ conversion over.
+```
+shuf -n 5 popmap.rustica.karasuk > distinguished.list
+```
+3. Format `chromosome-scaffold.auto.table.txt` with conversion between chromosome names and scaffold IDs for autosomes.
+4. Generate input VCF.
+```
+bcftools view --threads 16 -S popmap.rustica.karasuk -c 2:minor -m2 -M2 -U -v snps -O z -o ./vcf/rustica.allsites.final.auto.snps.miss02.mac2.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz
+tabix -p vcf ./vcf/rustica.allsites.final.auto.snps.miss02.mac2.vcf.gz
+```
+5. Extract VCF for each autosome.
+```
+while read i; do scaff=`echo "$i" | cut -f 1`; chrom=`echo "$i" | cut -f 2`; bcftools view --threads 16 -r $scaff -S popmap.rustica.karasuk -O z -o ./vcf/rustica.karasuk.allsites.final.auto.snps.miss02.mac2.$chrom.vcf.gz ./vcf/rustica.allsites.final.auto.snps.miss02.mac2.vcf.gz; done < ./chromosome-scaffold.auto.table.txt
+for vcf in ./vcf/*.vcf.gz; do tabix -C -p vcf $vcf; done
+```
+6. Convert VCFs to SMC input format.
+```
+source ~/hirundo_speciation_genomics/tmp/smc++-env/bin/activate
+while read i; do scaff=`echo "$i" | cut -f 1`; chrom=`echo "$i" | cut -f 2`; for indv in `cat distinguished.list`; do smc++ vcf2smc -c 50000 ./vcf/rustica.karasuk.allsites.final.auto.snps.miss02.mac2.$chrom.vcf.gz out/rustica.$chrom.$indv.smc.gz $scaff Pop1:HRVN96101,HRVN96107,HRVN96108,HRVN96103,HRVN96104,HRVN96105,HRVN96106,HRVN96300,HRVN96102,HRVN96298 -d $indv $indv; done; done < ./chromosome-scaffold.auto.table.txt
+```
+7. Fit the model using `estimate`.
+```
+smc++ estimate --timepoints 1000 200000 -o analysis/ 2.3e-9 out/rustica.*.smc.gz
+```
+8. Plot/output results table.
+```
+smc++ plot rustica-SMC.pdf analysis/model.final.json -g 1 -c
+```
+This writes `rustica-SMC.csv` and `rustica-SMC.pdf`. The .csv file can be used in downstream `pyrho` analysis.
 
 
 
