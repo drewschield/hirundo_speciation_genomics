@@ -43,6 +43,8 @@ The analysis sections below use the following software and dependencies and assu
 * [Introgress](https://www.uwyo.edu/buerkle/software/introgress/)
 * [dadi](https://dadi.readthedocs.io/en/latest/)
 * [easySFS](https://github.com/isaacovercast/easySFS)
+* [GEMMA](https://github.com/genetics-statistics/GEMMA)
+* [Beagle](https://faculty.washington.edu/browning/beagle/beagle.html)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
@@ -1013,10 +1015,73 @@ cd ..
 
 ## Genotype-phenotype associations
 
+We'll map genetic associations with ventral color and tail streamer length variation using Bayesian sparse linear mixed models (BSLMM) and univariate linear mixed models (LMM) in `GEMMA`.
 
+### Set up environment
+```
+cd ./analysis/
+mkdir gemma
+cd gemma
+mkdir vcf
+mkdir vcf_imputed
+mkdir phenotype_lists
+mkdir input
+```
 
+Format popmaps.
+```
+popmap.all
+popmap.all.male
+popmap.all.female
+```
 
+### Install GEMMA and Beagle
+```
+cd ~/hirundo_speciation_genomics/tmp/
+wget https://github.com/genetics-statistics/GEMMA/releases/download/v0.98.4/gemma-0.98.4-linux-static-AMD64.gz
+chmod +x gemma-0.98.4-linux-static-AMD64
+mv gemma-0.98.4-linux-static-AMD64 gemma
+sudo cp gemma /usr/local/bin/
+cd ../analysis/gemma
+wget https://faculty.washington.edu/browning/beagle/beagle.28Jun21.220.jar
+```
 
+### Format and impute SNP data
+
+`GEMMA` requires complete genotype information, so we will impute missing genotypes using `beagle`.
+
+#### Concatenate autosomal and Z chromosome VCFs
+```
+bcftools concat -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz
+```
+
+#### Extract SNP data for males
+```
+bcftools view --threads 16 -S popmap.all.male -O v ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.vcf.gz
+```
+
+#### Extract SNP data for females
+```
+bcftools view --threads 16 -S popmap.all.female -O v ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.female.vcf.gz
+bcftools view --threads 16 -S popmap.all.female -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.female.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.ingroup.vcf.gz
+bcftools concat --threads 16 -O z -o ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.female.vcf.gz ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.female.vcf.gz
+rm ./vcf/hirundo_rustica+smithii.allsites.final.chrW.snps.miss02.maf05.female.vcf.gz 
+rm ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.female.vcf.gz 
+```
+
+#### Perform imputation using Beagle
+```
+java -Xmx96g -jar beagle.28Jun21.220.jar nthreads=16 gt=./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz out=./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute
+java -Xmx96g -jar beagle.28Jun21.220.jar nthreads=16 gt=./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.vcf.gz out=./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute
+java -Xmx96g -jar beagle.28Jun21.220.jar nthreads=16 gt=./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.vcf.gz out=./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute
+tabix -p vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.vcf.gz
+tabix -p vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.vcf.gz
+tabix -p vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.vcf.gz
+```
+
+### Format sample lists for various analyses
+
+There are cases where hybrids have incomplete phenotype matrices. `GEMMA` requires complete data, so we'll downsample our imputed genotypes accordingly.
 
 
 
