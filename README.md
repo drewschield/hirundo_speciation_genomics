@@ -761,7 +761,7 @@ popmap.rustica-gutturalis
 popmap.tytleri-gutturalis
 ```
 
-#### Run projection preview to calculate number of segregating sites with various downsampling schemes.
+#### Run projection preview to calculate number of segregating sites with various downsampling schemes
 ```
 conda activate easySFS
 ./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-tytleri --unfolded -a --preview
@@ -771,7 +771,7 @@ conda activate easySFS
 
 A sample size of 96 gives a reasonably high number of segregating sites per analysis.
 
-#### Run `easySFS` to output jSFS under projections.
+#### Run `easySFS` to output jSFS under projections
 ```
 ./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-tytleri --unfolded -a -o sfs_rustica-tytleri --prefix sfs.rustica-tytleri --proj 96,96 -f
 ./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-gutturalis --unfolded -a -o sfs_rustica-gutturalis --prefix sfs.rustica-gutturalis --proj 96,96 -f
@@ -779,7 +779,7 @@ A sample size of 96 gives a reasonably high number of segregating sites per anal
 conda deactivate
 ```
 
-#### Copy input jSFS to `03-data` directories.
+#### Copy input jSFS to `03-data` directories
 ```
 cp ./sfs_rustica-tytleri/dadi/rustica-tytleri.sfs ./dadi_rustica-tytleri/03-data/
 cp ./sfs_rustica-gutturalis/dadi/rustica-gutturalis.sfs ./dadi_rustica-gutturalis/03-data/
@@ -807,7 +807,7 @@ Note, this was not the most straightforward to get set up. Specific details belo
 mkdir dadi-install
 ```
 
-#### Create new virtual environment for dadi and dependencies.
+#### Create new virtual environment for dadi and dependencies
 ```
 cd dadi-install
 virtualenv -p /usr/bin/python2.7 dadi-env
@@ -817,21 +817,21 @@ cd ..
 
 Run `deactivate` to exit virtual environment.
 
-#### Install scipy 0.13.3 from wheel included with dadi modifications.
+#### Install scipy 0.13.3 from wheel included with dadi modifications
 ```
 cd dadi_rustica-tytleri/01-scripts
 pip install scipy-0.13.3-cp27-cp27mu-linux_x86_64.whl
 cd ..
 ```
 
-#### Install numpy, matplotlib, and parallel.
+#### Install numpy, matplotlib, and parallel
 ```
 pip install numpy
 pip install matplotlib==2.0.0
 sudo apt-get install parallel
 ```
 
-#### Install libgfortran3 and mkl; format mkl library file.
+#### Install libgfortran3 and mkl; format mkl library file
 ```
 sudo apt-get install libgfortran3
 pip install mkl
@@ -840,21 +840,21 @@ mv libmkl_rt.so.2 libmkl_rt.so
 cd ../../../
 ```
 
-#### Tell dadi where its libraries are.
+#### Tell dadi where its libraries are
 
 We need to run this during each new terminal instance prior to running analysis:
 ```
 export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
 ```
 
-#### Make run scripts executable.
+#### Make run scripts executable
 ```
 chmod 777 ./dadi_rustica-tytleri/01-scripts/*.sh
 chmod 777 ./dadi_rustica-gutturalis/01-scripts/*.sh
 chmod 777 ./dadi_tytleri-gutturalis/01-scripts/*.sh
 ```
 
-#### Run pilot analysis to make sure things are working.
+#### Run pilot analysis to make sure things are working
 ```
 cd ./analysis/dadi
 source dadi-env/bin/activate
@@ -866,7 +866,7 @@ cd dadi_rustica-tytleri
 
 Both scripts should run without errors and produce output files in `dadi_rustica-tytleri`.
 
-#### Check that all models will run.
+#### Check that all models will run
 ```
 sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs SI unfolded 80
 sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs AM unfolded 80
@@ -879,7 +879,7 @@ sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs SC
 
 The 'SC' model fails with "ValueError: need more than 7 values to unpack". If we look at the models detailed in `02-modifs_v2/unfolded/modeledemo_new_models.py` and there are two 'SC' models. The second includes more than 7 parameters (we will comment this out below).
 
-#### Edit models and run scripts.
+#### Edit models and run scripts
 
 1. Make subdirectory to tinker with scripts.
 ```
@@ -907,10 +907,106 @@ We now have an environment set up to run demographic models.
 
 ### Run demographic models
 
+A note on grid size: the `dadi` manual suggests setting a grid size to be somewhat larger than the largest dimension of the SFS analyzed (this point is reiterated [here](https://groups.google.com/g/dadi-user/c/2hSq_Tjicso) by R. Gutenkunst. Larger grid sizes provide higher accuracy at the expense of longer runtimes. The analysis scripts here multiply the input grid size by 2.
 
+#### Run models for rustica-tytleri
+```
+source ./dadi-install/dadi-env/bin/activate
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+cd dadi_rustica-tytleri
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs SI unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs AM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs IM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs SC unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs AM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs IM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs SC2m unfolded 55
+cd ..
+```
 
+To check on a running model (e.g., 'SI'):
+```
+for i in ./10-log/SI_*; do tail $i; done
+```
 
+#### Run models for rustica-gutturalis
+```
+source ./dadi-install/dadi-env/bin/activate
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+cd dadi_rustica-gutturalis
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs SI unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs AM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs IM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs SC unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs AM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs IM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs SC2m unfolded 55
+cd ..
+```
 
+#### Run models for tytleri-gutturalis
+```
+source ./dadi-install/dadi-env/bin/activate
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+cd dadi_tytleri-gutturalis
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs SI unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs AM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs IM unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs SC unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs AM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs IM2m unfolded 55
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs SC2m unfolded 55
+cd ..
+```
+
+### Parse best-fitting models
+
+1. Write `modelLL.sh` to `./analysis/dadi/script_edits` and distribute to analysis directories.
+```
+cd ./analysis/dadi/script_edits
+cp modelLL.sh ../dadi_rustica-tytleri
+cp modelLL.sh ../dadi_rustica-gutturalis
+cp modelLL.sh ../dadi_tytleri-gutturalis
+cd ..
+```
+
+2. Run script to parse best-fitting model.
+```
+cd dadi_rustica-tytleri
+sh modelLL.sh
+cd ..
+
+cd dadi_rustica-gutturalis
+sh modelLL.sh
+cd ..
+
+cd dadi_tytleri-gutturalis
+sh modelLL.sh
+cd ..
+```
+
+### Run longer optimization runs for best-fitting models
+
+Here, we'll run 20 iterations of the best-fit models from above, but with larger grid size to increase parameter estimation accuracy.
+
+```
+source ./dadi-install/dadi-env/bin/activate
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+cd dadi_rustica-tytleri
+nohup ./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs SC2m unfolded 70 &
+for i in SC2m_*; do model=`echo $i | cut -d'_' -f1`; iter=`echo $i | cut -d'_' -f2`; ll=`grep 'Optimized log-likelihood' $i/$i.txt | tail -n1`; aic=`grep 'AIC' $i/$i.txt | tail -n1`; theta=`grep 'theta' $i/$i.txt | tail -n1`; echo $model $iter $ll $aic $theta | sort -k3; done
+cd ..
+
+cd dadi_rustica-gutturalis
+nohup ./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-gutturalis.sfs SC2m unfolded 70 &
+for i in SC2m_*; do model=`echo $i | cut -d'_' -f1`; iter=`echo $i | cut -d'_' -f2`; ll=`grep 'Optimized log-likelihood' $i/$i.txt | tail -n1`; aic=`grep 'AIC' $i/$i.txt | tail -n1`; theta=`grep 'theta' $i/$i.txt | tail -n1`; echo $model $iter $ll $aic $theta | sort -k3; done
+cd ..
+
+cd dadi_tytleri-gutturalis
+nohup ./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/tytleri-gutturalis.sfs SC unfolded 70 &
+for i in SC_*; do model=`echo $i | cut -d'_' -f1`; iter=`echo $i | cut -d'_' -f2`; ll=`grep 'Optimized log-likelihood' $i/$i.txt | tail -n1`; aic=`grep 'AIC' $i/$i.txt | tail -n1`; theta=`grep 'theta' $i/$i.txt | tail -n1`; echo $model $iter $ll $aic $theta | sort -k3; done
+cd ..
+```
 
 [Back to top](#contents)
 
