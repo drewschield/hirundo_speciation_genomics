@@ -38,6 +38,7 @@ The analysis sections below use the following software and dependencies and assu
 * [bedtools](https://bedtools.readthedocs.io/en/latest/)
 * [SNPRelate](http://bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
+* [Introgress](https://www.uwyo.edu/buerkle/software/introgress/)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
@@ -447,14 +448,14 @@ for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f
 
 We'll examine population genetic structure within barn swallows using the R package `SNPRelate`.
 
-#### Set up environment
+### Set up environment
 ```
 cd ./analysis
 mkdir pca
 cd pca
 ```
 
-#### Filter input VCF
+### Filter input VCF
 
 We'll run PCA on autosomal and Z-linked SNPs after performing several filtering steps:
 * Remove high missing data samples
@@ -463,7 +464,7 @@ We'll run PCA on autosomal and Z-linked SNPs after performing several filtering 
 
 1. Merge autosomal and Z-linked VCFs.
 ```
-bcftools concat -O z -o hirundo_rustica+smithii.allsites.final.snps.miss02.maf05.ingroup.auto+chrZ.vcf.gz ../../vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ../../vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools concat -O z -o hirundo_rustica+smithii.allsites.final.snps.miss02.maf05.ingroup.auto+chrZ.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz
 ```
 
 2. Remove samples, filter by minor allele frequency.
@@ -484,9 +485,9 @@ bcftools query -f '%CHROM\t%POS\n' hirundo_rustica+smithii.allsites.final.snps.m
 
 There were actually only 837,275 SNPs after applying the allele frequency filter. Plenty for analysis.
 
-#### Perform PCA
+### Perform PCA
 
-We'll run the PCA in R using the script `./R/pca.R`
+We'll run the PCA in R using the script `./R/pca.R`.
 
 [Back to top](#contents)
 
@@ -502,12 +503,12 @@ cd admixture
 mkdir input
 ```
 
-#### Convert VCF to Plink input format
+### Convert VCF to Plink input format
 ```
 plink --vcf ../pca/hirundo_rustica+smithii.allsites.final.snps.miss02.maf1.ingroup.indv.auto+chrZ.vcf.gz --make-bed --out hirundo.auto+chrZ --allow-extra-chr --recode12
 ```
 
-#### Fix formatting for ADMIXTURE
+### Fix formatting for ADMIXTURE
 
 The program can't take non-integer scaffold names.
 ```
@@ -519,14 +520,14 @@ sed -i.bak -e 's/NW_0//g' ./input/hirundo.auto+chrZ.map
 sed -i.bak -e 's/\.1//g' ./input/hirundo.auto+chrZ.map
 ```
 
-#### Perform analysis
+### Perform analysis
 
 Run `runAdmixture.sh` to run ADMIXTURE across a series of K values 1-10.
 ```
 sh runAdmixture.sh ./input/hirundo.auto+chrZ.ped
 ```
 
-#### Evaluate K model with lowest cross-validation error.
+### Evaluate K model with lowest cross-validation error.
 ```
 grep -h CV log*.out
 ```
@@ -534,6 +535,127 @@ grep -h CV log*.out
 [Back to top](#contents)
 
 ## Hybrid index and heterozygosity
+
+We'll compare individual hybrid index with interspecific heterozygosity at ancestry-informative sites to characterize our current sampling of hybrid zone populations. Elsie Shogren kindly shared her R Markdown detailing her procedure for doing this analysis in her system (thank you, Elsie!).
+
+### Set up environment
+```
+cd ./analysis
+mkdir introgress
+cd introgress
+mkdir fst
+mkdir input
+```
+
+### Calculate SNP-based Fst between parental populations
+
+We'll use Fst to determine which ancestry-informative SNPs to include in analysis.
+
+1. Format parental, hybrid, and parental+hybrid population maps.
+```
+popmap.gutturalis
+popmap.rustica
+popmap.tytleri
+popmap.rustica-tytleri
+popmap.rustica-gutturalis
+popmap.tytleri-gutturalis
+popmap.rustica-hybrids-tytleri
+popmap.rustica-hybrids-gutturalis
+popmap.tytleri-hybrids-gutturalis
+```
+
+2. Merge autosomal and Z chromosome VCFs for biallelic SNPs.
+```
+bcftools concat --threads 24 -O z -o ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz
+```
+
+3. Calculate Fst between parental populations.
+```
+vcftools --gzvcf ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz --weir-fst-pop popmap.rustica --weir-fst-pop popmap.tytleri --out ./fst/fst_rustica-tytleri
+vcftools --gzvcf ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz --weir-fst-pop popmap.rustica --weir-fst-pop popmap.gutturalis --out ./fst/fst_rustica-gutturalis
+vcftools --gzvcf ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz --weir-fst-pop popmap.tytleri --weir-fst-pop popmap.gutturalis --out ./fst/fst_tytleri-gutturalis
+```
+
+### Identify ancestry-informative SNPs
+
+Here, we'll look for SNPs with Fst >= 0.6 between parental populations. Barn swallows have very few fixed differences, as shown in previous studies (e.g., Safran et al. 2016; Scordato et al. 2017; Schield et al. 2021), but using high-Fst SNPs should provide sufficient information.
+
+1. Format lists of high-Fst SNPs.
+```
+tail -n+2 ./fst/fst_rustica-tytleri.weir.fst | awk 'BEGIN{OFS="\t"}{if ($3 >=0.6) print $1,$2}' > ./fst/anc-info.snps.rustica-tytleri.txt
+tail -n+2 ./fst/fst_rustica-gutturalis.weir.fst | awk 'BEGIN{OFS="\t"}{if ($3 >=0.6) print $1,$2}' > ./fst/anc-info.snps.rustica-gutturalis.txt
+tail -n+2 ./fst/fst_tytleri-gutturalis.weir.fst | awk 'BEGIN{OFS="\t"}{if ($3 >=0.6) print $1,$2}' > ./fst/anc-info.snps.tytleri-gutturalis.txt
+```
+
+2. Remove SNPs with completely missing data in hybrids.
+
+Pilot analyses revealed that there are a small number of SNPs with completely missing genotypes in hybrid tytleri-gutturalis, which throws an error in downstream `introgress` analysis.
+
+Identify which SNPs are causing the problem.
+```
+bcftools view -i 'F_MISSING=0' ./input/anc-info.snps.tytleri-gutturalis_hybrids.vcf.gz | bcftools query -f '%CHROM\t%POS\n'
+```
+
+This outputs:
+```
+NC_053488.1	16368106
+NC_053488.1	16368109
+NC_053488.1	16368122
+```
+
+Note, the queried file in the command above was generated after extracting the SNP set for the tytleri-gutturalis hybrids.
+
+Remove these SNPs from the parental input file.
+```
+grep -vwE "(16368106|16368109|16368122)" ./fst/anc-info.snps.tytleri-gutturalis.txt > ./fst/tmp.anc-info.snps.tytleri-gutturalis.txt
+rm ./fst/anc-info.snps.tytleri-gutturalis.txt
+mv ./fst/tmp.anc-info.snps.tytleri-gutturalis.txt ./fst/anc-info.snps.tytleri-gutturalis.txt
+```
+
+3. Extract ancestry-informative SNPs for parentals and hybrids.
+```
+bcftools view --threads 16 -S popmap.rustica -R ./fst/anc-info.snps.rustica-tytleri.txt -O z -o ./input/anc-info.snps.rustica-tytleri_rustica.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.tytleri -R ./fst/anc-info.snps.rustica-tytleri.txt -O z -o ./input/anc-info.snps.rustica-tytleri_tytleri.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.rustica-tytleri -R ./fst/anc-info.snps.rustica-tytleri.txt -O z -o ./input/anc-info.snps.rustica-tytleri_hybrids.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.rustica -R ./fst/anc-info.snps.rustica-gutturalis.txt -O z -o ./input/anc-info.snps.rustica-gutturalis_rustica.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.gutturalis -R ./fst/anc-info.snps.rustica-gutturalis.txt -O z -o ./input/anc-info.snps.rustica-gutturalis_gutturalis.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.rustica-gutturalis -R ./fst/anc-info.snps.rustica-gutturalis.txt -O z -o ./input/anc-info.snps.rustica-gutturalis_hybrids.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.tytleri -R ./fst/anc-info.snps.tytleri-gutturalis.txt -O z -o ./input/anc-info.snps.tytleri-gutturalis_tytleri.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.gutturalis -R ./fst/anc-info.snps.tytleri-gutturalis.txt -O z -o ./input/anc-info.snps.tytleri-gutturalis_gutturalis.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -S popmap.tytleri-gutturalis -R ./fst/anc-info.snps.tytleri-gutturalis.txt -O z -o ./input/anc-info.snps.tytleri-gutturalis_hybrids.vcf.gz /media/drewschield/VernalBucket/hirundo/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+```
+
+### Estimate hybrid index and interspecific heterozygosity
+
+We'll run the analysis in R using the script `./R/introgress.R`.
+
+[Back to top](#contents)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
