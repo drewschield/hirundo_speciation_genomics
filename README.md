@@ -34,6 +34,7 @@ The analysis sections below use the following software and dependencies and assu
 * [Plink](https://www.cog-genomics.org/plink/)
 * [vcftools](https://vcftools.github.io/index.html)
 * [bedtools](https://bedtools.readthedocs.io/en/latest/)
+* [SNPRelate](http://bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
@@ -441,6 +442,66 @@ for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f
 [Back to top](#contents)
 
 ## PCA
+
+We'll examine population genetic structure within barn swallows using the R package `SNPRelate`.
+
+#### Set up environment
+```
+cd ./analysis
+mkdir pca
+cd pca
+```
+
+#### Filter input VCF
+
+We'll run PCA on autosomal and Z-linked SNPs after performing several filtering steps:
+* Remove high missing data samples
+* Remove mislabeled individuals from the sequencing step
+* Retail SNPs with a minor allele frequency of >= 0.1
+
+1. Merge autosomal and Z-linked VCFs.
+```
+bcftools concat -O z -o hirundo_rustica+smithii.allsites.final.snps.miss02.maf05.ingroup.auto+chrZ.vcf.gz ../../vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.maf05.ingroup.vcf.gz ../../vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.maf05.ingroup.vcf.gz
+```
+
+2. Remove samples, filter by minor allele frequency.
+
+There were a small number of _savignii_ and _erythrogaster_ samples (6) that were mislabeled during sequencing library preparation, making it unclear which subspecies they belonged to. There was also an inflection point in the proportion of missing genotypes within samples at ~40%. We'll remove the mislabeled and high missing data samples from further analysis.
+
+Format `sample.remove.list`.
+
+Remove samples in the list and filter to retain SNPs with minor allele frequency >= 0.1.
+```
+bcftools view --threads 16 -S ^sample.remove.list -c 2 -q 0.1:minor -m2 -M2 -O z -o hirundo_rustica+smithii.allsites.final.snps.miss02.maf1.ingroup.indv.auto+chrZ.vcf.gz hirundo_rustica+smithii.allsites.final.snps.miss02.maf05.ingroup.auto+chrZ.vcf.gz
+```
+
+3. Sample a million SNPs at random for analysis.
+```
+bcftools query -f '%CHROM\t%POS\n' hirundo_rustica+smithii.allsites.final.snps.miss02.maf1.ingroup.indv.auto+chrZ.vcf.gz | shuf -n 1000000 > sites.subset.list
+```
+
+There were actually only 837,275 SNPs after applying the allele frequency filter. Plenty for analysis.
+
+#### Perform PCA
+
+We'll run the PCA in R using the script `./R/pca.R`
+
+[Back to top](#contents)
+
+## ADMIXTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
