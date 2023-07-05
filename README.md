@@ -16,6 +16,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [PCA](#pca)
 * [ADMIXTURE](#admixture)
 * [Hybrid index and heterozygosity](#hybrid-index-and-heterozygosity)
+* [Demographic inference](#demographic-inference)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -39,6 +40,7 @@ The analysis sections below use the following software and dependencies and assu
 * [SNPRelate](http://bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
 * [Introgress](https://www.uwyo.edu/buerkle/software/introgress/)
+* [dadi](https://dadi.readthedocs.io/en/latest/)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
@@ -631,7 +633,9 @@ We'll run the analysis in R using the script `./R/introgress.R`.
 
 [Back to top](#contents)
 
+## Demographic inference
 
+We'll infer two-population demographic histories and the relative timing of secondary contact between parental populations using modifications to `dadi` described in [Rougemont et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) and available via [GitHub](https://github.com/QuentinRougemont/DemographicInference). Preliminary analyses revealed that our sample sizes from the whole genome dataset were insufficient to resolve demographic histories following very recent divergence (consistent with simulation-based results from [Robinson et al. 2014](https://bmcecolevol.biomedcentral.com/articles/10.1186/s12862-014-0254-4)). To capitalize on a larger sample size, we'll reanalyze RADseq data from [Scordato et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14276) and [Scordato et al. 2020](https://onlinelibrary.wiley.com/doi/full/10.1111/ele.13420), which were demutiplexed and quality trimmed as described in [Schield et al. 2021](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.15885).
 
 
 
