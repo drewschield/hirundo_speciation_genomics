@@ -41,6 +41,7 @@ The analysis sections below use the following software and dependencies and assu
 * [ADMIXTURE](https://dalexander.github.io/admixture/publications.html)
 * [Introgress](https://www.uwyo.edu/buerkle/software/introgress/)
 * [dadi](https://dadi.readthedocs.io/en/latest/)
+* [easySFS](https://github.com/isaacovercast/easySFS)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
@@ -647,6 +648,21 @@ mkdir bam
 mkdir gvcf
 mkdir vcf
 mkdir log
+mkdir dadi_rustica-tytleri
+mkdir dadi_rustica-gutturalis
+mkdir dadi_tytleri-gutturalis
+```
+
+Distribute copies of the Rougemont et al. `dadi` modifications into each of the `dadi_...` subdirectories.
+```
+git clone https://github.com/QuentinRougemont/DemographicInference.git
+mv DemographicInference dadi_rustica-tytleri
+
+git clone https://github.com/QuentinRougemont/DemographicInference.git
+mv DemographicInference dadi_rustica-gutturalis
+
+git clone https://github.com/QuentinRougemont/DemographicInference.git
+mv DemographicInference dadi_tytleri-gutturalis
 ```
 
 ### Process RAD data and call variants with outgroup
@@ -732,6 +748,188 @@ vcftools --gzvcf ./vcf/hirundo_rustica+smithii.rad.snps.tmp.vcf.gz --exclude-pos
 ```
 python polarizeVCFbyOutgroup.py -vcf ./vcf/hirundo_rustica+smithii.rad.snps.dadi.fix.vcf.gz -out ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -ind 1 -add
 ```
+
+### Format joint site frequency spectrum (jSFS)
+
+We'll convert the SNP data in the polarized VCF to an unfolded jSFS for downstream analysis using `easySFS`
+
+#### Format popmaps
+
+```
+popmap.rustica-tytleri
+popmap.rustica-gutturalis
+popmap.tytleri-gutturalis
+```
+
+#### Run projection preview to calculate number of segregating sites with various downsampling schemes.
+```
+conda activate easySFS
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-tytleri --unfolded -a --preview
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-gutturalis --unfolded -a --preview
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.tytleri-gutturalis --unfolded -a --preview
+```
+
+A sample size of 96 gives a reasonably high number of segregating sites per analysis.
+
+#### Run `easySFS` to output jSFS under projections.
+```
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-tytleri --unfolded -a -o sfs_rustica-tytleri --prefix sfs.rustica-tytleri --proj 96,96 -f
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.rustica-gutturalis --unfolded -a -o sfs_rustica-gutturalis --prefix sfs.rustica-gutturalis --proj 96,96 -f
+./easySFS/easySFS.py -i ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -p popmap.tytleri-gutturalis --unfolded -a -o sfs_tytleri-gutturalis --prefix sfs.tytleri-gutturalis --proj 96,96 -f
+conda deactivate
+```
+
+#### Copy input jSFS to `03-data` directories.
+```
+cp ./sfs_rustica-tytleri/dadi/rustica-tytleri.sfs ./dadi_rustica-tytleri/03-data/
+cp ./sfs_rustica-gutturalis/dadi/rustica-gutturalis.sfs ./dadi_rustica-gutturalis/03-data/
+cp ./sfs_tytleri-gutturalis/dadi/tytleri-gutturalis.sfs ./dadi_tytleri-gutturalis/03-data/
+```
+
+### Set up environment for dadi analysis
+
+Here, we'll set up a virtual environment with the necessary dependencies for dadi to run based on the workflow and scripts from [Rougemont et al. 2017](https://github.com/QuentinRougemont/DemographicInference).
+
+Dependencies:
+* Python 2.7
+* scipy 0.13 or older
+* numpy
+* matplotlib
+* pylab
+* parallel
+* libgfortran3
+* mkl
+
+Note, this was not the most straightforward to get set up. Specific details below should help avoid unnecessary hangups.
+
+#### Set up installation directory
+```
+mkdir dadi-install
+```
+
+#### Create new virtual environment for dadi and dependencies.
+```
+cd dadi-install
+virtualenv -p /usr/bin/python2.7 dadi-env
+source dadi-env/bin/activate
+cd ..
+```
+
+Run `deactivate` to exit virtual environment.
+
+#### Install scipy 0.13.3 from wheel included with dadi modifications.
+```
+cd dadi_rustica-tytleri/01-scripts
+pip install scipy-0.13.3-cp27-cp27mu-linux_x86_64.whl
+cd ..
+```
+
+#### Install numpy, matplotlib, and parallel.
+```
+pip install numpy
+pip install matplotlib==2.0.0
+sudo apt-get install parallel
+```
+
+#### Install libgfortran3 and mkl; format mkl library file.
+```
+sudo apt-get install libgfortran3
+pip install mkl
+cd dadi-install/dadi-env/lib/
+mv libmkl_rt.so.2 libmkl_rt.so
+cd ../../../
+```
+
+#### Tell dadi where its libraries are.
+
+We need to run this during each new terminal instance prior to running analysis:
+```
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+```
+
+#### Make run scripts executable.
+```
+chmod 777 ./dadi_rustica-tytleri/01-scripts/*.sh
+chmod 777 ./dadi_rustica-gutturalis/01-scripts/*.sh
+chmod 777 ./dadi_tytleri-gutturalis/01-scripts/*.sh
+```
+
+#### Run pilot analysis to make sure things are working.
+```
+cd ./analysis/dadi
+source dadi-env/bin/activate
+export LD_LIBRARY_PATH=/data3/hirundo/analysis/dadi/dadi-install/dadi-env/lib/:$LD_LIBRARY_PATH
+cd dadi_rustica-tytleri
+./01-scripts/01-run_model_iteration_v2.sh 1 ./03-data/rustica-tytleri.sfs SI unfolded 80
+./01-scripts/00.run_dadi_parallel_v2.sh ./03-data/rustica-tytleri.sfs SI unfolded 80
+```
+
+Both scripts should run without errors and produce output files in `dadi_rustica-tytleri`.
+
+#### Check that all models will run.
+```
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs SI unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs AM unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs IM unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs SC unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs AM2m unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs IM2m unfolded 80
+sh ./01-scripts/01-run_model_iteration_v2.sh 55 ./03-data/rustica-tytleri.sfs SC2m unfolded 80
+```
+
+The 'SC' model fails with "ValueError: need more than 7 values to unpack". If we look at the models detailed in `02-modifs_v2/unfolded/modeledemo_new_models.py` and there are two 'SC' models. The second includes more than 7 parameters (we will comment this out below).
+
+#### Edit models and run scripts.
+
+1. Make subdirectory to tinker with scripts.
+```
+mkdir script_edits
+cd script_edits
+cp 02-modifs_v2/unfolded/modeledemo_new_models.py .
+cp 01-scripts/00.run_dadi_parallel_v2.sh .
+```
+
+2. Edit `modeledemo_new_models.py` to comment out second 'SC' model.
+
+3. Edit `00.run_dadi_parallel_v2.sh` to perform 20 iterations.
+
+4. Distribute edited scripts to analysis directories.
+```
+cp modeledemo_new_models.py ../dadi_rustica-tytleri/02-modifs_v2/unfolded/
+cp modeledemo_new_models.py ../dadi_rustica-gutturalis/02-modifs_v2/unfolded/
+cp modeledemo_new_models.py ../dadi_tytleri-gutturalis/02-modifs_v2/unfolded/
+cp 00.run_dadi_parallel_v2.sh ../dadi_rustica-tytleri/01-scripts/
+cp 00.run_dadi_parallel_v2.sh ../dadi_rustica-gutturalis/01-scripts/
+cp 00.run_dadi_parallel_v2.sh ../dadi_tytleri-gutturalis/01-scripts/
+```
+
+We now have an environment set up to run demographic models.
+
+### Run demographic models
+
+
+
+
+
+
+[Back to top](#contents)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
