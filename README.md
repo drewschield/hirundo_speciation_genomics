@@ -1086,6 +1086,34 @@ There are cases where samples have incomplete phenotype matrices. `GEMMA` requir
 Sample sizes:
 * Hybrid ventral color _n_ = 159
 * Hybrid tail streamer length _n_ = 151
+* Full ventral color _n_ = 305
+* Full tail streamer length _n_ = 300
+* Male ventral color _n_ = 157
+* Male tail streamer length _n_ = 151
+* Female ventral color _n_ = 148
+* Female tail streamer length _n_ = 149
+
+Lists of samples in these categories are in `./phenotype_lists/`.
+
+### Extract VCFs and convert to Plink format
+```
+bcftools view --threads 16 -S ./phenotype_lists/list.hybrid.plum -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.hybrid_all.impute.plum.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.hybrid.tail -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.hybrid_all.impute.tail.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.full.plum -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.plum.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.full.tail -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.tail.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.male.plum -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.plum.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.male.tail -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.tail.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.female.plum -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.plum.vcf.gz
+bcftools view --threads 16 -S ./phenotype_lists/list.female.tail -O v ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.vcf.gz | bcftools filter -e 'F_MISSING > 0.2 || MAF <= 0.05' -O z -o ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.tail.vcf.gz
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.hybrid_all.impute.plum.vcf.gz --make-bed --out ./input/gwas.hybrid.plum --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.hybrid_all.impute.tail.vcf.gz --make-bed --out ./input/gwas.hybrid.tail --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.plum.vcf.gz --make-bed --out ./input/gwas.full.plum --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.impute.tail.vcf.gz --make-bed --out ./input/gwas.full.tail --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.plum.vcf.gz --make-bed --out ./input/gwas.male.plum --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.male.impute.tail.vcf.gz --make-bed --out ./input/gwas.male.tail --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.plum.vcf.gz --make-bed --out ./input/gwas.female.plum --allow-extra-chr
+plink --vcf ./vcf_imputed/hirundo_rustica+smithii.allsites.final.auto+chrZ+chrW.snps.miss02.maf05.female.impute.tail.vcf.gz --make-bed --out ./input/gwas.female.tail --allow-extra-chr
+```
 
 
 
