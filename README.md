@@ -20,6 +20,8 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Genotype-phenotype associations](#genotype-phenotype-associations)
 * [Recombination rate](#recombination-rate)
 * [Population genetic diversity and differentiation](#population-genetic-diversity-and-differentiation)
+* [Population branch statistics](#population-branch-statistics)
+* [Tajima's D](#tajimas-d)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -1777,10 +1779,14 @@ Run `./R/candidate_plotting_popgen_stats.R` to visualize population genetic summ
 Run code blocks at the end of `./R/gemma_LMM.R` to summarize, plot, and statistically compare Fst distributions between significant and non-significant GWA SNPs.
 
 
-## PBS
+## Population branch statistics
+
+It may be useful to further clarify which population(s) have been the targets of selection using population branch statistics to examine cases when one population has a much longer locus/region-specific branch length than the others, following [Yi et al. 2010](https://www.science.org/doi/full/10.1126/science.1190371): PBS = (T12 + T13 - T23)/2, where T = -log(1-Fst) for a given pair of populations.
+
+We have Fst data required to calculate PBS in sliding windows from `pixy`. Run `./R/pbs.R` to perform calculations (also in `./R/candidate_plotting_popgen_stats.R`).
 
 
-
+## Tajima's D
 
 
 
