@@ -204,3 +204,184 @@ ts.hy.chr2$color[ts.hy.chr2$p_wald>0.05/8870504] <- 'lightgrey'
 par(mfrow=c(1,1))
 # Output at 4 x 8
 plot(ts.hy.chr2$ps,-log10(ts.hy.chr2$p_wald),pch=20,cex=0.6,col=ts.hy.chr2$color,ylab='-log10(P)',xlab='Chromosome Position (Mb)')
+
+
+### Compare overlap between Fst and significant SNPs-------------------------
+
+## Read in windowed Fst estimates for significant/non-significant SNPs
+br.rt.sig <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.sig.fst-ruty.txt',header=T)
+br.rg.sig <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.sig.fst-rugu.txt',header=T)
+br.tg.sig <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.sig.fst-guty.txt',header=T)
+tl.rt.sig <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.sig.fst-ruty.txt',header=T)
+tl.rg.sig <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.sig.fst-rugu.txt',header=T)
+tl.tg.sig <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.sig.fst-guty.txt',header=T)
+
+br.rt.non <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.nosig.fst-ruty.txt',header=T)
+br.rg.non <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.nosig.fst-rugu.txt',header=T)
+br.tg.non <- read.table('./fst/gwas_full_lmm.full-breast-bright.assoc.nosig.fst-guty.txt',header=T)
+tl.rt.non <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.nosig.fst-ruty.txt',header=T)
+tl.rg.non <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.nosig.fst-rugu.txt',header=T)
+tl.tg.non <- read.table('./fst/gwas_full_lmm.full-tail-streamer.assoc.nosig.fst-guty.txt',header=T)
+
+## Convert negative Fst to 0
+br.rt.sig$fst[br.rt.sig$fst<0] <- 0
+br.rg.sig$fst[br.rg.sig$fst<0] <- 0
+br.tg.sig$fst[br.tg.sig$fst<0] <- 0
+tl.rt.sig$fst[tl.rt.sig$fst<0] <- 0
+tl.rg.sig$fst[tl.rg.sig$fst<0] <- 0
+tl.tg.sig$fst[tl.tg.sig$fst<0] <- 0
+
+br.rt.non$fst[br.rt.non$fst<0] <- 0
+br.rg.non$fst[br.rg.non$fst<0] <- 0
+br.tg.non$fst[br.tg.non$fst<0] <- 0
+tl.rt.non$fst[tl.rt.non$fst<0] <- 0
+tl.rg.non$fst[tl.rg.non$fst<0] <- 0
+tl.tg.non$fst[tl.tg.non$fst<0] <- 0
+
+## Split out autosomes and Z chromosome
+br.rt.sig.z <- br.rt.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+br.rg.sig.z <- br.rg.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+br.tg.sig.z <- br.tg.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.rt.sig.z <- tl.rt.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.rg.sig.z <- tl.rg.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.tg.sig.z <- tl.tg.sig %>% filter(str_detect(chrom, 'NC_053488.1'))
+
+br.rt.non.z <- br.rt.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+br.rg.non.z <- br.rg.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+br.tg.non.z <- br.tg.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.rt.non.z <- tl.rt.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.rg.non.z <- tl.rg.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+tl.tg.non.z <- tl.tg.non %>% filter(str_detect(chrom, 'NC_053488.1'))
+
+br.rt.sig.a <- br.rt.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+br.rg.sig.a <- br.rg.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+br.tg.sig.a <- br.tg.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.rt.sig.a <- tl.rt.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.rg.sig.a <- tl.rg.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.tg.sig.a <- tl.tg.sig %>% filter(!str_detect(chrom, 'NC_053488.1'))
+
+br.rt.non.a <- br.rt.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+br.rg.non.a <- br.rg.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+br.tg.non.a <- br.tg.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.rt.non.a <- tl.rt.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.rg.non.a <- tl.rg.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+tl.tg.non.a <- tl.tg.non %>% filter(!str_detect(chrom, 'NC_053488.1'))
+
+## Compare distributions
+boxplot(br.rt.non$fst,br.rt.sig$fst,br.rg.non$fst,br.rg.sig$fst,br.tg.non$fst,br.tg.sig$fst,outline=F)
+boxplot(tl.rt.non$fst,tl.rt.sig$fst,tl.rg.non$fst,tl.rg.sig$fst,tl.tg.non$fst,tl.tg.sig$fst,outline=F)
+
+par(mfrow=c(2,2))
+boxplot(br.rt.non.a$fst,br.rt.sig.a$fst,br.rg.non.a$fst,br.rg.sig.a$fst,br.tg.non.a$fst,br.tg.sig.a$fst,outline=F)
+boxplot(tl.rt.non.a$fst,tl.rt.sig.a$fst,tl.rg.non.a$fst,tl.rg.sig.a$fst,tl.tg.non.a$fst,tl.tg.sig.a$fst,outline=F)
+
+boxplot(br.rt.non.z$fst,br.rt.sig.z$fst,br.rg.non.z$fst,br.rg.sig.z$fst,br.tg.non.z$fst,br.tg.sig.z$fst,outline=F)
+boxplot(tl.rt.non.z$fst,tl.rt.sig.z$fst,tl.rg.non.z$fst,tl.rg.sig.z$fst,tl.tg.non.z$fst,tl.tg.sig.z$fst,outline=F)
+
+## Mann-Whitney Tests
+wilcox.test(br.rt.non$fst,br.rt.sig$fst)
+wilcox.test(br.rg.non$fst,br.rg.sig$fst)
+wilcox.test(br.tg.non$fst,br.tg.sig$fst)
+wilcox.test(tl.rt.non$fst,tl.rt.sig$fst)
+wilcox.test(tl.rg.non$fst,tl.rg.sig$fst)
+wilcox.test(tl.tg.non$fst,tl.tg.sig$fst)
+
+wilcox.test(br.rt.non.a$fst,br.rt.sig.a$fst)
+wilcox.test(br.rg.non.a$fst,br.rg.sig.a$fst)
+wilcox.test(br.tg.non.a$fst,br.tg.sig.a$fst)
+wilcox.test(tl.rt.non.a$fst,tl.rt.sig.a$fst)
+wilcox.test(tl.rg.non.a$fst,tl.rg.sig.a$fst)
+wilcox.test(tl.tg.non.a$fst,tl.tg.sig.a$fst)
+
+wilcox.test(br.rt.non.z$fst,br.rt.sig.z$fst)
+wilcox.test(br.rg.non.z$fst,br.rg.sig.z$fst)
+wilcox.test(br.tg.non.z$fst,br.tg.sig.z$fst)
+wilcox.test(tl.rt.non.z$fst,tl.rt.sig.z$fst)
+wilcox.test(tl.rg.non.z$fst,tl.rg.sig.z$fst)
+wilcox.test(tl.tg.non.z$fst,tl.tg.sig.z$fst)
+
+## Summary statistics
+
+mean(br.rt.sig$fst,na.rm=T)
+mean(br.rg.sig$fst,na.rm=T)
+mean(br.tg.sig$fst,na.rm=T)
+mean(tl.rt.sig$fst,na.rm=T)
+mean(tl.rg.sig$fst,na.rm=T)
+mean(tl.tg.sig$fst,na.rm=T)
+
+sd(br.rt.sig$fst,na.rm=T)
+sd(br.rg.sig$fst,na.rm=T)
+sd(br.tg.sig$fst,na.rm=T)
+sd(tl.rt.sig$fst,na.rm=T)
+sd(tl.rg.sig$fst,na.rm=T)
+sd(tl.tg.sig$fst,na.rm=T)
+
+mean(br.rt.non$fst,na.rm=T)
+mean(br.rg.non$fst,na.rm=T)
+mean(br.tg.non$fst,na.rm=T)
+mean(tl.rt.non$fst,na.rm=T)
+mean(tl.rg.non$fst,na.rm=T)
+mean(tl.tg.non$fst,na.rm=T)
+
+sd(br.rt.non$fst,na.rm=T)
+sd(br.rg.non$fst,na.rm=T)
+sd(br.tg.non$fst,na.rm=T)
+sd(tl.rt.non$fst,na.rm=T)
+sd(tl.rg.non$fst,na.rm=T)
+sd(tl.tg.non$fst,na.rm=T)
+
+mean(br.rt.sig.a$fst,na.rm=T)
+mean(br.rg.sig.a$fst,na.rm=T)
+mean(br.tg.sig.a$fst,na.rm=T)
+mean(tl.rt.sig.a$fst,na.rm=T)
+mean(tl.rg.sig.a$fst,na.rm=T)
+mean(tl.tg.sig.a$fst,na.rm=T)
+
+sd(br.rt.sig.a$fst,na.rm=T)
+sd(br.rg.sig.a$fst,na.rm=T)
+sd(br.tg.sig.a$fst,na.rm=T)
+sd(tl.rt.sig.a$fst,na.rm=T)
+sd(tl.rg.sig.a$fst,na.rm=T)
+sd(tl.tg.sig.a$fst,na.rm=T)
+
+mean(br.rt.non.a$fst,na.rm=T)
+mean(br.rg.non.a$fst,na.rm=T)
+mean(br.tg.non.a$fst,na.rm=T)
+mean(tl.rt.non.a$fst,na.rm=T)
+mean(tl.rg.non.a$fst,na.rm=T)
+mean(tl.tg.non.a$fst,na.rm=T)
+
+sd(br.rt.non.a$fst,na.rm=T)
+sd(br.rg.non.a$fst,na.rm=T)
+sd(br.tg.non.a$fst,na.rm=T)
+sd(tl.rt.non.a$fst,na.rm=T)
+sd(tl.rg.non.a$fst,na.rm=T)
+sd(tl.tg.non.a$fst,na.rm=T)
+
+mean(br.rt.sig.z$fst,na.rm=T)
+mean(br.rg.sig.z$fst,na.rm=T)
+mean(br.tg.sig.z$fst,na.rm=T)
+mean(tl.rt.sig.z$fst,na.rm=T)
+mean(tl.rg.sig.z$fst,na.rm=T)
+mean(tl.tg.sig.z$fst,na.rm=T)
+
+sd(br.rt.sig.z$fst,na.rm=T)
+sd(br.rg.sig.z$fst,na.rm=T)
+sd(br.tg.sig.z$fst,na.rm=T)
+sd(tl.rt.sig.z$fst,na.rm=T)
+sd(tl.rg.sig.z$fst,na.rm=T)
+sd(tl.tg.sig.z$fst,na.rm=T)
+
+mean(br.rt.non.z$fst,na.rm=T)
+mean(br.rg.non.z$fst,na.rm=T)
+mean(br.tg.non.z$fst,na.rm=T)
+mean(tl.rt.non.z$fst,na.rm=T)
+mean(tl.rg.non.z$fst,na.rm=T)
+mean(tl.tg.non.z$fst,na.rm=T)
+
+sd(br.rt.non.z$fst,na.rm=T)
+sd(br.rg.non.z$fst,na.rm=T)
+sd(br.tg.non.z$fst,na.rm=T)
+sd(tl.rt.non.z$fst,na.rm=T)
+sd(tl.rg.non.z$fst,na.rm=T)
+sd(tl.tg.non.z$fst,na.rm=T)

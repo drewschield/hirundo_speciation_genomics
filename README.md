@@ -19,6 +19,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Demographic inference](#demographic-inference)
 * [Genotype-phenotype associations](#genotype-phenotype-associations)
 * [Recombination rate](#recombination-rate)
+* [Population genetic diversity and differentiation](#population-genetic-diversity-and-differentiation)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -57,6 +58,7 @@ The analysis sections below use the following software and dependencies and assu
 Note, I installed a number of these programs to my [conda](https://docs.conda.io/en/latest/) environment, or installed via a virtual environment (details below).
 
 [Back to top](#contents)
+
 
 ## Genome data processing and variant calling
 
@@ -428,6 +430,7 @@ rm ./vcf/hirundo_rustica+smithii.allsites.HardFilter.scaffold.*
 
 [Back to top](#contents)
 
+
 ## Mapping statistics
 
 ### Set up environment
@@ -452,6 +455,7 @@ for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f
 ```
 
 [Back to top](#contents)
+
 
 ## PCA
 
@@ -500,6 +504,7 @@ We'll run the PCA in R using the script `./R/pca.R`.
 
 [Back to top](#contents)
 
+
 ## ADMIXTURE
 
 We'll estimate individual admixture proportions between one or more genetic clusters using `admixture`.
@@ -542,6 +547,7 @@ grep -h CV log*.out
 ```
 
 [Back to top](#contents)
+
 
 ## Hybrid index and heterozygosity
 
@@ -639,6 +645,7 @@ bcftools view --threads 16 -S popmap.tytleri-gutturalis -R ./fst/anc-info.snps.t
 We'll run the analysis in R using the script `./R/introgress.R`.
 
 [Back to top](#contents)
+
 
 ## Demographic inference
 
@@ -1016,6 +1023,7 @@ cd ..
 
 [Back to top](#contents)
 
+
 ## Genotype-phenotype associations
 
 We'll map genetic associations with ventral color and tail streamer length variation using Bayesian sparse linear mixed models (BSLMM) and univariate linear mixed models (LMM) in `GEMMA`.
@@ -1305,6 +1313,7 @@ To summarize and plot the results, run `./R/gemma_LMM.R`, which also uses the `c
 
 [Back to top](#contents)
 
+
 ## Recombination rate
 
 We will estimate recombination rate variation across the genome using `pyrho`, which makes use of a population size history inferred using `SMC++`.
@@ -1569,17 +1578,206 @@ Run `./R/pyrho.R` to summarize and plot variation in genome-wide recombination r
 [Back to top](#contents)
 
 
+## Population genetic diversity and differentiation
+
+We'll use `pixy` to calculate π, Fst, and dxy within and between populations.
+
+### Set up environment
+```
+cd ./analysis/
+mkdir pixy
+cd pixy
+mkdir results
+mkdir results_chrom-specific
+```
+
+### Install new version of pixy
+
+A new version of `pixy` was released, with improved run-times and handling of variant data (including bypassing large intermediate zarr files during processing). Runs can also be parallelized. `htslib` is now a dependency.
+
+#### Activate pixy conda environment
+
+We have previously set up `pixy` in its own conda environment with Python 3.6.
+```
+conda activate pixy
+```
+
+#### Remove older version of pixy
+```
+conda remove pixy
+```
+
+#### Install new version
+```
+conda install -c conda-forge pixy
+```
+
+#### Install htslib in environment
+```
+conda install -c bioconda htslib
+```
+
+### Set up population maps
+
+`pixy` uses a population map as a companion input file for summary statistic calculations, which is a two-column tab-delimited file with sample ID and population ID.
+
+Population abbreviations are:
+
+RU = rustica
+GU = gutturalis
+TY = tytleri
+RT = rustica-tytleri
+RG = rustica-gutturalis
+TG = tytleri-gutturalis
+SA = savignii
+TR = transitiva
+ER = erythrogaster
+
+Population maps are in `popmap.pixy` and `popmap.pixy.subspecies`. Maps for only female samples (for analysis of the W chromosome) are in `popmap.pixy.female` and `popmap.pixy.subspecies.female`.
+
+### Perform analysis
+
+We'll run `pixy` with the chromosome-specific all-sites VCFs in `~/hirundo_speciation_genomics/vcf/chrom-specific` as input.
+
+#### Analysis on autosomes and the Z chromosome
+
+1. Format `scaffold.auto+chrZ.list`.
+2. Run `pixyloop.sh` to calculate statistics in windows of various lengths.
+```
+conda activate pixy
+sh pixyloop.sh scaffold.auto+chrZ.list
+```
+3. Run `pixyloop_subspecies.sh` to calculate statistics in windows with the expanded 'subspecies' popmap.
+```
+sh pixyloop_subspecies.sh scaffold.auto+chrZ.list
+```
+#### Analysis on the W chromosome
+
+1. Format `scaffold.chrW.list`.
+2. Run `pixyloop_chrW.sh`.
+```
+sh pixyloop_chrW.sh scaffold.chrW.list
+```
+2. Run `pixyloop_chrW_subspecies.sh`.
+```
+sh pixyloop_chrW_subspecies.sh scaffold.chrW.list
+```
+
+#### Sliding windows on specific chromosomes
+
+Here we'll run analyses with sliding windows and intermediate step sizes on chromosomes 1A, 2, and the Z chromosome.
+
+|Chromosome |Scaffold     |Length      |
+|-----------|-------------|------------|
+| 1A        | NC_053453.1 | 76187387   |
+| 2         | NC_053450.1 | 156035725  |
+| Z         | NC_053488.1 | 90132487   |
+
+1. Format sliding window files for analysis using bedtools `makewindows`.
+```
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 100000 -s 10000 > window.100kb-10kb.chrZ-NC_053488.1.bed
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 50000 -s 5000 > window.50kb-5kb.chrZ-NC_053488.1.bed
+echo -e 'NC_053453.1\t76187387' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chr1A-NC_053453.1.bed
+echo -e 'NC_053450.1\t156035725' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chr2-NC_053450.1.bed
+echo -e 'NC_053488.1\t90132487' | bedtools makewindows -g - -w 10000 -s 1000 > window.10kb-1kb.chrZ-NC_053488.1.bed
+```
+
+2. Run sliding window analyses on each chromosome.
+```
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy --bed_file window.100kb-10kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr1A-NC_053453.1_100kb-10kb > pixy_chr1A-NC_053453.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy --bed_file window.100kb-10kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr2-NC_053450.1_100kb-10kb > pixy_chr2-NC_053450.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy --bed_file window.100kb-10kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_chrZ-NC_053488.1_100kb-10kb > pixy_chrZ-NC_053488.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy --bed_file window.50kb-5kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr1A-NC_053453.1_50kb-5kb > pixy_chr1A-NC_053453.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy --bed_file window.50kb-5kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr2-NC_053450.1_50kb-5kb > pixy_chr2-NC_053450.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy --bed_file window.50kb-5kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_chrZ-NC_053488.1_50kb-5kb > pixy_chrZ-NC_053488.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy --bed_file window.10kb-1kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr1A-NC_053453.1_10kb-1kb > pixy_chr1A-NC_053453.1_10kb-1kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy --bed_file window.10kb-1kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_chr2-NC_053450.1_10kb-1kb > pixy_chr2-NC_053450.1_10kb-1kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy --bed_file window.10kb-1kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_chrZ-NC_053488.1_10kb-1kb > pixy_chrZ-NC_053488.1_10kb-1kb.log
+```
+
+3. Run sliding window analyses on each chromosome between subspecies.
+```
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy.subspecies --bed_file window.100kb-10kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr1A-NC_053453.1_100kb-10kb > pixy_subspecies_chr1A-NC_053453.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy.subspecies --bed_file window.100kb-10kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr2-NC_053450.1_100kb-10kb > pixy_subspecies_chr2-NC_053450.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy.subspecies --bed_file window.100kb-10kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chrZ-NC_053488.1_100kb-10kb > pixy_subspecies_chrZ-NC_053488.1_100kb-10kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy.subspecies --bed_file window.50kb-5kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr1A-NC_053453.1_50kb-5kb > pixy_subspecies_chr1A-NC_053453.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy.subspecies --bed_file window.50kb-5kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr2-NC_053450.1_50kb-5kb > pixy_subspecies_chr2-NC_053450.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy.subspecies --bed_file window.50kb-5kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chrZ-NC_053488.1_50kb-5kb > pixy_subspecies_chrZ-NC_053488.1_50kb-5kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr1A.vcf.gz --populations popmap.pixy.subspecies --bed_file window.10kb-1kb.chr1A-NC_053453.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr1A-NC_053453.1_10kb-1kb > pixy_subspecies_chr1A-NC_053453.1_10kb-1kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chr2.vcf.gz --populations popmap.pixy.subspecies --bed_file window.10kb-1kb.chr2-NC_053450.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chr2-NC_053450.1_10kb-1kb > pixy_subspecies_chr2-NC_053450.1_10kb-1kb.log
+pixy --n_cores 6 --stats pi dxy fst --vcf ~/hirundo_speciation_genomics/vcf/chrom-specific/hirundo_rustica+smithii.allsites.final.chrZ.vcf.gz --populations popmap.pixy.subspecies --bed_file window.10kb-1kb.chrZ-NC_053488.1.bed --output_folder results_chrom-specific --output_prefix pixy_subspecies_chrZ-NC_053488.1_10kb-1kb > pixy_subspecies_chrZ-NC_053488.1_10kb-1kb.log
+```
+
+### Format results
+
+We'll concatenate windowed outputs for all of the chromosomes, which can be parsed further by population.
+
+#### Format scaffold lists
+
+1. Format complete scaffold list.
+```
+cat scaffold.auto+chrZ.list scaffold.chrW.list > scaffold.all.list
+```
+2. Format 'ordered' scaffold list (no unplaced scaffolds).
+```
+grep -v '-un' scaffold.all.list > scaffold.order.list
+```
+3. Run `concatenatePixy.sh` to combine results at different window resolutions.
+```
+sh concatenatePixy.sh
+```
+4. Run `concatenatePixyOrder.sh` to combine results for ordered chromosomes.
+```
+sh concatenatePixyOrder.sh
+```
+5. Run `concatenatePixyOrder_subspecies.sh`.
+```
+sh concatenatePixyOrder_subspecies.sh
+```
+
+### Fst values of significant GWA SNPS
+
+To say whether regions of the genome strongly associated with traits have experienced divergent selection in the parental populations, we first need to explore the overlap between association peaks and Fst values by answering whether significant SNPs have higher Fst than non-significant SNPs and/or genome background Fst distributions.
+
+#### Set up environment
+```
+cd ./analysis/gemma
+mkdir fst
+```
+
+#### Convert Fst results to BED input format
+```
+awk 'BEGIN{OFS="\t"}{if ($1=="RU" && $2=="TY") print $3,$4-1,$5,$6}' ../pixy/pixy.all.order.fst.10kb.txt > ./fst/pixy.ruty.order.fst.10kb.bed
+awk 'BEGIN{OFS="\t"}{if ($1=="RU" && $2=="GU") print $3,$4-1,$5,$6}' ../pixy/pixy.all.order.fst.10kb.txt > ./fst/pixy.rugu.order.fst.10kb.bed
+awk 'BEGIN{OFS="\t"}{if ($1=="GU" && $2=="TY") print $3,$4-1,$5,$6}' ../pixy/pixy.all.order.fst.10kb.txt > ./fst/pixy.guty.order.fst.10kb.bed
+```
+
+#### Run bedtools intersect to output Fst values for significant GWA SNPs
+```
+for pop in ruty rugu guty; do echo -e "chrom\tsnp-start\tsnp-end\twald-p\twindow-start\twindow-end\tfst" > ./fst/gwas_full_lmm.full-breast-bright.assoc.sig.fst-${pop}.txt; bedtools intersect -a ./significant/gwas_full_lmm.full-breast-bright.assoc.sig.bed -b ./fst/pixy.$pop.order.fst.10kb.bed -wao | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$6,$7,$8}' | awk -F"\t" '!seen[$5, $6, $7]++' - >> ./fst/gwas_full_lmm.full-breast-bright.assoc.sig.fst-${pop}.txt; done
+for pop in ruty rugu guty; do echo -e "chrom\tsnp-start\tsnp-end\twald-p\twindow-start\twindow-end\tfst" > ./fst/gwas_full_lmm.full-tail-streamer.assoc.sig.fst-${pop}.txt; bedtools intersect -a ./significant/gwas_full_lmm.full-tail-streamer.assoc.sig.bed -b ./fst/pixy.$pop.order.fst.10kb.bed -wao | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$6,$7,$8}' | awk -F"\t" '!seen[$5, $6, $7]++' - >> ./fst/gwas_full_lmm.full-tail-streamer.assoc.sig.fst-${pop}.txt; done
+```
+
+#### Run bedtools to output Fst values for non-significant GWA SNPs
+```
+for pop in ruty rugu guty; do echo -e "chrom\tsnp-start\tsnp-end\twald-p\twindow-start\twindow-end\tfst" > ./fst/gwas_full_lmm.full-breast-bright.assoc.nosig.fst-${pop}.txt; awk 'BEGIN{OFS="\t"}{if (-log($13)/log(10)<5) print $1,$3-1,$3,$13}' ./output/gwas_full_lmm.full-breast-bright.assoc.txt | grep -v 'NW_' | bedtools intersect -a - -b ./fst/pixy.$pop.order.fst.10kb.bed -wao | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$6,$7,$8}' | awk -F"\t" '!seen[$5, $6, $7]++' - >> ./fst/gwas_full_lmm.full-breast-bright.assoc.nosig.fst-${pop}.txt; done
+for pop in ruty rugu guty; do echo -e "chrom\tsnp-start\tsnp-end\twald-p\twindow-start\twindow-end\tfst" > ./fst/gwas_full_lmm.full-tail-streamer.assoc.nosig.fst-${pop}.txt; awk 'BEGIN{OFS="\t"}{if (-log($13)/log(10)<5) print $1,$3-1,$3,$13}' ./output/gwas_full_lmm.full-tail-streamer.assoc.txt | grep -v 'NW_' | bedtools intersect -a - -b ./fst/pixy.$pop.order.fst.10kb.bed -wao | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4,$6,$7,$8}' | awk -F"\t" '!seen[$5, $6, $7]++' - >> ./fst/gwas_full_lmm.full-tail-streamer.assoc.nosig.fst-${pop}.txt; done
+```
+
+### Statistical analysis and comparison of Fst distributions
+
+Run `./R/pixy.R` to summarize, plot, and statistically compare π, Fst, dxy, and recombination rate.
+
+Run `./R/candidate_plotting_popgen_stats.R` to visualize population genetic summary statistics in candidate trait loci, along with additional statistics to detect signatures of selection (see below).
+
+Run code blocks at the end of `./R/gemma_LMM.R` to summarize, plot, and statistically compare Fst distributions between significant and non-significant GWA SNPs.
 
 
-
-
-
-
-
-
-
-
-
+## PBS
 
 
 
