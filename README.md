@@ -464,6 +464,8 @@ for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f
 
 ## PCA
 
+![PCA](/images/pca.png "pca")
+
 We'll examine population genetic structure within barn swallows using the R package `SNPRelate`.
 
 ### Set up environment
