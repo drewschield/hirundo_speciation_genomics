@@ -23,6 +23,8 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Population branch statistics](#population-branch-statistics)
 * [Tajima's D](#tajimas-d)
 * [Haplotype statistics](#haplotype-statistics)
+* [Geographic cline analysis](#geographic-cline-analysis)
+* [Genomic cline analysis](#genomic-cline-analysis)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -2057,38 +2059,95 @@ Run these analyses in `./R/hzar_trait_rustica-tytleri.R`, `./R/hzar_trait_rustic
 
 We want to fit geographic clines to a background distribution of loci that makes biological sense, allowing for variation in evolutionary processes and their effects across loci. Inspired by helpful suggestions from Sean Stankowski (and his analyses of [_Mimulus_](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.16849)), we'll fit clines to a sample of loci from across the genome, then summarize genome-wide variation in cline parameters (thanks, Sean!).
 
+#### Set up environment
+```
+cd ./analysis/hzar/
+mkdir input_background_introgress
+mkdir input_background_hzar
+mkdir results_introgress
+mkdir results_hzar
+mkdir log
+```
 
+Format metadata tables for each hybrid zone:
+```
+data.rustica-tytleri.txt
+data.rustica-gutturalis.txt
+data.tytleri-gutturalis.txt
+```
 
+#### Prepare input data
 
+1. Format `candidate.bed` with regions of trait loci.
+2. Make lists of all SNPs per hybrid zone (to be queried below).
+```
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.rustica-tytleri_hybrids.vcf.gz | grep 'NC_' > all.rustica-tytleri.snps.maf1.txt
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.rustica-gutturalis_hybrids.vcf.gz | grep 'NC_' > all.rustica-gutturalis.snps.maf1.txt
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.tytleri-gutturalis_hybrids.vcf.gz | grep 'NC_' > all.tytleri-gutturalis.snps.maf1.txt
+```
+3. Make lists of 1000 randomly sampled focal SNPs (minor allele frequency >= 0.1).
+```
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.rustica-tytleri_hybrids.vcf.gz | grep 'NC_' | awk '{OFS="\t"}{print $1,$2-1,$2}' | bedtools intersect -v -wb -a - -b candidate.bed | shuf -n 1000 | awk '{OFS="\t"}{print $1,$3}' > background.rustica-tytleri.snps.maf1.txt
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.rustica-gutturalis_hybrids.vcf.gz | grep 'NC_' | awk '{OFS="\t"}{print $1,$2-1,$2}' | bedtools intersect -v -wb -a - -b candidate.bed | shuf -n 1000 | awk '{OFS="\t"}{print $1,$3}' > background.rustica-gutturalis.snps.maf1.txt
+bcftools query -f '%CHROM\t%POS\n' tmp.snps.maf1.tytleri-gutturalis_hybrids.vcf.gz | grep 'NC_' | awk '{OFS="\t"}{print $1,$2-1,$2}' | bedtools intersect -v -wb -a - -b candidate.bed | shuf -n 1000 | awk '{OFS="\t"}{print $1,$3}' > background.tytleri-gutturalis.snps.maf1.txt
+``` 
+4. Run `makeSNPbackground.sh` to extract loci consisting of 100 SNPs around each focal SNP.
+```
+sh makeSNPbackground.sh rustica-tytleri
+sh makeSNPbackground.sh rustica-gutturalis
+sh makeSNPbackground.sh tytleri-gutturalis
+```
+5. Index input VCFs.
+```
+for i in ./*.vcf.gz; do tabix -p vcf $i; done
+```
+6. Run `parseBackgroundVCFs.sh` to extract SNP data for background loci.
+```
+sh parseBackgroundVCFs.sh
+```
+7. Check that all VCFs consist of loci with 100 SNPs.
+```
+for vcf in ./input_background_introgress/*.vcf.gz; do bcftools query -f '%POS\n' $vcf | wc -l; done
+```
 
+#### Estimate hybrid index using `introgress`
 
+Now we'll run analysis on each of the input locus VCFs to prepare inputs for HZAR.
 
+Run wrapper scripts `runIntrogress_rustica-tytleri.sh`, `runIntrogress_rustica-gutturalis.sh`, and `runIntrogress_tytleri-gutturalis.sh`, to perform analysis in `introgress` per locus by calling `introgress_rustica-tytleri.R`, `introgress_rustica-gutturalis.R`, and `introgress_tytleri-gutturalis.R`, respectively. 
+```
+sh runIntrogress_rustica-tytleri.sh
+sh runIntrogress_rustica-gutturalis.sh
+sh runIntrogress_tytleri-gutturalis.sh
+```
 
+This outputs the results to `./results_introgress/`.
 
+#### Format input for HZAR
 
+Run `makeInputHZAR.sh` to format input data for HZAR, along with a locus lookup table.
+```
+./makeInputHZAR.sh rustica-tytleri
+./makeInputHZAR.sh rustica-gutturalis
+./makeInputHZAR.sh tytleri-gutturalis
+```
 
+Note: we call this as a `bash` script instead of with `sh` for compatibility with internal `paste` command.
 
+#### Fit geographic clines for each locus using HZAR
 
+Run wrapper scripts to call `hzar_background_rustica-tytleri.R`, `hzar_background_rustica-gutturalis.R`, and `hzar_background_tytleri-gutturalis.R` per locus.
+```
+sh runHZAR_rustica-tytleri.sh
+sh runHZAR_rustica-gutturalis.sh
+sh runHZAR_tytleri-gutturalis.sh
+```
 
+These scripts output Rdata results files for each locus to `./hzar_results`.
 
+#### Summarize and plot background geographic clines
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Run `./R/hzar_summary.R` and `/R/hzar_plotting`.
 
 [Back to top](#contents)
 
@@ -2097,6 +2156,49 @@ We want to fit geographic clines to a background distribution of loci that makes
 
 
 [Back to top](#contents)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## Linkage disequilibrium: tests of genetic coupling
