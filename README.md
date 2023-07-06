@@ -2162,6 +2162,38 @@ Run `./R/hzar_summary.R` and `/R/hzar_plotting`.
 
 ## Genomic cline analysis
 
+We'll examine introgression of trait loci compared to background loci also in the context of genome-wide ancestry using Bayesian genomic clines. We'll use a modification of the original `bgc` software to perform analysis on hybrid index estimates per locus, accounting for female hemizygosity on the Z chromosome.
+
+### Set up environment
+```
+cd ./analysis/
+mkdir bgc
+cd bgc
+mkdir input_locus
+```
+
+1. Format popmaps, including sample, population, and sex data.
+```
+popmap.rustica-tytleri.txt
+popmap.rustica-gutturalis.txt
+popmap.tytleri-gutturalis.txt
+```
+
+2. Retrieve background locus tables from `hzar` analysis directory.
+```
+cp ../hzar/*.locus-table.txt .
+```
+
+### Format input data
+
+Run `makeLocusInput.sh` to format input data per background locus.
+```
+./makeLocusInput.sh rustica-tytleri
+./makeLocusInput.sh rustica-gutturalis
+./makeLocusInput.sh tytleri-gutturalis
+```
+
+Inputs for the trait loci can be formatted using the popmaps and locus-specific data in `../hzar/data.*.csv` files.
 
 [Back to top](#contents)
 
