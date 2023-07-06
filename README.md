@@ -1778,6 +1778,8 @@ Run `./R/candidate_plotting_popgen_stats.R` to visualize population genetic summ
 
 Run code blocks at the end of `./R/gemma_LMM.R` to summarize, plot, and statistically compare Fst distributions between significant and non-significant GWA SNPs.
 
+[Back to top](#contents)
+
 
 ## Population branch statistics
 
@@ -1785,10 +1787,12 @@ It may be useful to further clarify which population(s) have been the targets of
 
 We have Fst data required to calculate PBS in sliding windows from `pixy`. Run `./R/pbs.R` to perform calculations (also in `./R/candidate_plotting_popgen_stats.R`).
 
+[Back to top](#contents)
+
 
 ## Tajima's D
 
-
+[Back to top](#contents)
 
 
 
