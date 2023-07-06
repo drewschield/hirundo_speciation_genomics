@@ -2198,73 +2198,18 @@ Inputs for the trait loci can be formatted using the popmaps and locus-specific 
 [Back to top](#contents)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Linkage disequilibrium: tests of genetic coupling
 
+In progress...
 
 [Back to top](#contents)
 
 
 ## Linkage disequilibrium: decay
 
+In progress...
 
 [Back to top](#contents)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Appendix
