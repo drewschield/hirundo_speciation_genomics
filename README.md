@@ -560,6 +560,8 @@ grep -h CV log*.out
 
 ## Hybrid index and heterozygosity
 
+![Heterozygosity](/images/triangle.png "heterozygosity")
+
 We'll compare individual hybrid index with interspecific heterozygosity at ancestry-informative sites to characterize our current sampling of hybrid zone populations. Elsie Shogren kindly shared her R Markdown detailing her procedure for doing this analysis in her system (thank you, Elsie!).
 
 ### Set up environment
