@@ -757,7 +757,7 @@ vcftools --gzvcf ./vcf/hirundo_rustica+smithii.rad.snps.tmp.vcf.gz --exclude-pos
 (bcftools view -h ./vcf/hirundo_rustica+smithii.rad.snps.dadi.vcf.gz; bcftools query -f "%CHROM\\t%POS\\t%ID\\t%REF\\t%ALT\\t%QUAL\\t%FILTER\\t%INFO\\tGT\\t[%GT\\t]\\n" ./vcf/hirundo_rustica+smithii.rad.snps.dadi.vcf.gz) | cat | bcftools view -m2 -M2 -v snps -O z -o ./vcf/hirundo_rustica+smithii.rad.snps.dadi.fix.vcf.gz
 ```
 
-12. Polarize VCF by outgroup using the script written by Kristian Ullrich available [here](https://github.com/kullrich/bio-scripts/blob/master/vcf/polarizeVCFbyOutgroup.py).
+12. Polarize VCF by outgroup using the script written by K. Ullrich available [here](https://github.com/kullrich/bio-scripts/blob/master/vcf/polarizeVCFbyOutgroup.py).
 ```
 python polarizeVCFbyOutgroup.py -vcf ./vcf/hirundo_rustica+smithii.rad.snps.dadi.fix.vcf.gz -out ./vcf/hirundo_rustica+smithii.rad.snps.dadi.polarized.vcf.gz -ind 1 -add
 ```
