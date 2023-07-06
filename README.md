@@ -56,6 +56,8 @@ The analysis sections below use the following software and dependencies and assu
 * [VCF-kit](https://vcf-kit.readthedocs.io/en/latest/)
 * [SHAPEIT](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
+* [HZAR](https://rdrr.io/cran/hzar/man/hzar-package.html)
+* [bgc](https://github.com/zgompert/BGC-Bayesian-genomic-clines)
 * [MashMap](https://github.com/marbl/MashMap)
 * [Repeatmasker](https://www.repeatmasker.org/)
 * [R](https://cran.r-project.org/)
@@ -1998,17 +2000,115 @@ for pop in rustica-tytleri rustica-gutturalis tytleri-gutturalis; do head -n1 ./
 
 ## Geographic cline analysis
 
+Genotype x phenotype and population genetic analyses revealed a set of candidate genomic regions that are both strongly associated with ventral plumage coloration or tail streamer lengths and that also exhibit local signatures of divergent selection between parental populations. To examine further evidence of divergent selection and the possibility that these regions promote reproductive isolation between parental populations, we'll investigate geographic clines based on hybrid indices derived from trait loci versus the genome background.
+
+### Set up environment
+```
+cd ./analysis/
+mkdir hzar
+cd hzar
+mkdir input
+```
+
+### Analysis of trait loci
+
+We'll first fit geographic cline models to ancestry estimates at loci associated with ventral color and tail streamer length.
+
+Regions containing trait loci:
+* KITLG region of Chr 1A; NC_053453.1:43850000-44600000
+* PLXNC1 region of Chr 1A; NC_053453.1:46450000-46600000
+* SPEF2/PRLR region of Z chr; NC_053488.1:18800000-19100000
+* SLC45A2 region of Z chr; NC_053488.1:19300000-19400000
+* BNC2 region of Z chr; NC_053488.1:33000000-33500000
+* GNAQ region of Z chr; NC_053488.1:35750000-36250000
+* ROR2 region of Z chr; NC_053488.1:44050000-44200000
+* APC/CAMK4 region of Z chr; NC_053488.1:46000000-47000000
+* ICE1/lncRNA region of Chr 2; NC_053450.1:97800000-98200000
+* PDE1C region of Chr 2; NC_053450.1:100000000-101000000
+
+#### Extract VCF data for analysis
+
+1. Retrieve popmaps from `introgress` analysis.
+```
+cp ../introgress/popmap.* .
+```
+2. Extract SNPs for each hybrid zone and set of parental populations with minor allele frequency >= 0.1.
+```
+bcftools view --threads 16 -q 0.1:minor -S popmap.rustica-hybrids-tytleri -O z -o ./tmp.snps.maf1.rustica-tytleri_hybrids.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -q 0.1:minor -S popmap.rustica-hybrids-gutturalis -O z -o ./tmp.snps.maf1.rustica-gutturalis_hybrids.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+bcftools view --threads 16 -q 0.1:minor -S popmap.tytleri-hybrids-gutturalis -O z -o ./tmp.snps.maf1.tytleri-gutturalis_hybrids.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz
+```
+3. Run scripts to extract SNPs in focal regions for each hybrid zone.
+```
+sh extractSNPs_trait_rustica-tytleri.sh
+sh extractSNPs_trait_rustica-gutturalis.sh
+sh extractSNPs_trait_tytleri-gutturalis.sh
+```
+
+#### Estimate hybrid index
+
+Run these analyses in `./R/hzar_trait_rustica-tytleri.R`, `./R/hzar_trait_rustica-gutturalis.R`, and `./R/hzar_trait_tytleri-gutturalis.R`.
+
+#### Fit geographic cline models
+
+Run these analyses in `./R/hzar_trait_rustica-tytleri.R`, `./R/hzar_trait_rustica-gutturalis.R`, and `./R/hzar_trait_tytleri-gutturalis.R`.
+
+### Analysis of background loci
+
+We want to fit geographic clines to a background distribution of loci that makes biological sense, allowing for variation in evolutionary processes and their effects across loci. Inspired by helpful suggestions from Sean Stankowski (and his analyses of [_Mimulus_](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.16849)), we'll fit clines to a sample of loci from across the genome, then summarize genome-wide variation in cline parameters (thanks, Sean!).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Back to top](#contents)
+
 
 ## Genomic cline analysis
+
+
+[Back to top](#contents)
 
 
 ## Linkage disequilibrium: tests of genetic coupling
 
 
+[Back to top](#contents)
+
+
 ## Linkage disequilibrium: decay
 
 
-
+[Back to top](#contents)
 
 
 
@@ -2205,40 +2305,3 @@ tail -n+4 Hirundo_rustica_bHirRus1.final.fasta.out | awk 'BEGIN{OFS="\t"}{print 
 ```
 
 [Back to top](#contents)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
