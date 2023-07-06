@@ -22,6 +22,7 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Population genetic diversity and differentiation](#population-genetic-diversity-and-differentiation)
 * [Population branch statistics](#population-branch-statistics)
 * [Tajima's D](#tajimas-d)
+* [Haplotype statistics](#haplotype-statistics)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
@@ -52,6 +53,8 @@ The analysis sections below use the following software and dependencies and assu
 * [SMC++](https://github.com/popgenmethods/smcpp)
 * [pyrho](https://github.com/popgenmethods/pyrho)
 * [pixy](https://pixy.readthedocs.io/en/latest/)
+* [VCF-kit](https://vcf-kit.readthedocs.io/en/latest/)
+* [SHAPEIT](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/)
 * [rehh](https://cran.r-project.org/web/packages/rehh/vignettes/rehh.html)
 * [MashMap](https://github.com/marbl/MashMap)
 * [Repeatmasker](https://www.repeatmasker.org/)
@@ -1792,7 +1795,223 @@ We have Fst data required to calculate PBS in sliding windows from `pixy`. Run `
 
 ## Tajima's D
 
+We'll look for fluctuations in the allele frequency spectrum using Tajima's D, comparing Tajima and Watterson's θ. We'll estimate Tajima's D using `VCF-kit`, which has the ability to perform sliding window scans of the statistic. We do not want to limit analyses to SNPs with minor allele frequency cutoffs, since this will bias Watterson's estimator.
+
+### Install VCF-kit
+
+#### Set up environment
+```
+cd ~/hirundo_speciation_genomics/tmp/
+mkdir vcf-kit-install
+cd vcf-kit-install
+```
+#### Create and activate VCF-kit virtual environment
+```
+virtualenv -p /usr/bin/python3.8 vcf-kit-env
+source ./vcf-kit-env/bin/activate
+```
+#### Install
+```
+pip install VCF-kit
+```
+
+### Set up input VCF data
+
+#### Set up environment
+```
+cd ./analysis/
+mkdir tajima
+cd tajima
+mkdir vcf
+mkdir results
+mkdir log
+```
+
+#### Format popmaps and chromosome list
+```
+popmap.rustica
+popmap.tytleri
+popmap.gutturalis
+```
+
+`chrom.list`
+
+#### Extract VCFs for parental populations
+```
+bcftools view --threads 8 -S popmap.rustica -O z -o ./vcf/hirundo_rustica.parental.rustica.snps.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz
+bcftools view --threads 8 -S popmap.tytleri -O z -o ./vcf/hirundo_rustica.parental.tytleri.snps.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz
+bcftools view --threads 8 -S popmap.gutturalis -O z -o ./vcf/hirundo_rustica.parental.gutturalis.snps.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto.snps.miss02.vcf.gz
+bcftools view --threads 8 -S popmap.rustica -O z -o ./vcf/hirundo_rustica.parental.rustica.snps.chrZ.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz
+bcftools view --threads 8 -S popmap.tytleri -O z -o ./vcf/hirundo_rustica.parental.tytleri.snps.chrZ.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz
+bcftools view --threads 8 -S popmap.gutturalis -O z -o ./vcf/hirundo_rustica.parental.gutturalis.snps.chrZ.vcf.gz ~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.chrZ.snps.miss02.vcf.gz
+```
+
+### Calculate Tajima's D
+
+#### Genome-wide analysis
+
+Run `runTajima.sh` to calculate Tajima's D genome-wide.
+```
+source ~/hirundo_speciation_genomics/tmp/vcf-kit-install/vcf-kit-env/bin/activate
+sh runTajima.sh
+```
+
+#### Focused analyses on specific chromosomes in sliding windows
+```
+bcftools view --threads 16 -r NC_053453.1 -O z ./vcf/hirundo_rustica.parental.rustica.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.rustica.chr1A.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053453.1 -O z ./vcf/hirundo_rustica.parental.tytleri.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.tytleri.chr1A.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053453.1 -O z ./vcf/hirundo_rustica.parental.gutturalis.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.gutturalis.chr1A.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053488.1 -O z ./vcf/hirundo_rustica.parental.rustica.snps.chrZ.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.rustica.chrZ.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053488.1 -O z ./vcf/hirundo_rustica.parental.tytleri.snps.chrZ.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.tytleri.chrZ.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053488.1 -O z ./vcf/hirundo_rustica.parental.gutturalis.snps.chrZ.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.gutturalis.chrZ.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053450.1 -O z ./vcf/hirundo_rustica.parental.rustica.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.rustica.chr2.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053450.1 -O z ./vcf/hirundo_rustica.parental.tytleri.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.tytleri.chr2.50kb-5kb.txt
+bcftools view --threads 16 -r NC_053450.1 -O z ./vcf/hirundo_rustica.parental.gutturalis.snps.vcf.gz | vk tajima 50000 5000 -  > ./results/tajima.gutturalis.chr2.50kb-5kb.txt
+```
+
 [Back to top](#contents)
+
+
+## Haplotype statistics
+
+We'll use haplotype diversity statistics to identify regions with patterns consistent with selection. First, we will phase variants for the parental populations. We'll then use the R package `rehh` to quantify haplotype statistics.
+
+### Set up environment
+
+```
+cd ./analysis/
+mkdir rehh
+cd rehh
+mkdir shapeit
+cd shapeit
+mkdir input
+mkdir pirs
+mkdir log
+mkdir results
+```
+
+### Haplotype phasing
+
+We'll perform statistical read-backed phasing using `SHAPEIT2`.
+
+#### Retrieve SHAPEIT and extractPIRs executables
+
+`wget https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r904.glibcv2.17.linux.tar.gz`
+`tar -xf shapeit.v2.r904.glibcv2.17.linux.tar.gz`
+`rm shapeit.v2.r904.glibcv2.17.linux.tar.gz`
+`mv shapeit.v2.904.3.10.0-693.11.6.el7.x86_64 shapeit2`
+
+`wget https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/files/extractPIRs.v1.r68.x86_64.tgz`
+`tar -xf extractPIRs.v1.r68.x86_64.tgz`
+`rm extractPIRs.v1.r68.x86_64.tgz`
+`mv extractPIRs.v1.r68.x86_64 extractPIRs`
+
+#### Prepare input data for phasing
+
+1. Format population maps.
+```
+popmap.rustica
+popmap.tytleri
+popmap.gutturalis
+```
+2. Concatenate popmaps.
+```
+cat popmap.rustica popmap.tytleri popmap.gutturalis > popmap.all
+```
+3. Format `chromosome-scaffold.ordered.table.txt` and `chromosome-scaffold.table.txt`.
+4. Run `parseParentalVCF.sh` to extract chromosome-specific VCFs for each parental population.
+```
+sh parseParentalVCF.sh chromosome-scaffold.ordered.table.txt
+gunzip ./input/*.vcf.gz
+```
+5. Format bam list input files for `extractPIRs`.
+```
+sh makeBamlist.sh
+rm bamlist.chr*-un*
+```
+
+#### Extract phase-informative reads
+
+1. Format `chrom.list`.
+2. Run `runExtractPIRs.sh` to extract phase informative reads.
+```
+sh runExtractPIRs.sh chrom.list
+```
+
+#### Assemble haplotypes using SHAPEIT2
+
+We'll run `SHAPEIT2` using the settings:
+* states = 1000
+* burn = 200
+* prune = 210
+* main = 1000
+* force
+
+1. Run `runShapeitAssemble.sh` to assemble haplotypes.
+```
+sh runShapeitAssemble.sh chrom.list
+```
+2. Run `runShapeitConvert.sh` to convert haplotype output to VCF.
+```
+sh runShapeitConvert.sh chrom.list
+```
+3. Run `runCompressIndexVCFs.sh` to compress and index results.
+```
+sh runCompressIndexVCFs.sh chrom.list
+```
+
+#### Parse phased VCFs by population
+
+Run `parsePhasedVCFs.sh` to extract parental population-specific VCFs.
+```
+sh parsePhasedVCFs.sh chrom.list
+```
+
+### Haplotype scans
+
+We now have input data that we can analyze using `rehh`.
+```
+cd ./analysis/rehh/
+```
+
+Run `runScans.sh` to call the R script `rehhScans.R` on each chromosome, perform haplotype scans, and calculate iHS and xp-EHH.
+```
+sh runScans.sh
+```
+
+Concatenate results.
+```
+for pop in rustica tytleri gutturalis; do head -n1 ./results/iHS_chr1_${pop}.txt > ./results/iHS_all_${pop}.txt; for chrom in `cat chrom.list`; do tail -n+2 ./results/iHS_${chrom}_${pop}.txt >> ./results/iHS_all_${pop}.txt; done; done
+for pop in rustica-tytleri rustica-gutturalis tytleri-gutturalis; do head -n1 ./results/XP-EHH_chr1_${pop}.txt > ./results/XP-EHH_all_${pop}.txt; for chrom in `cat chrom.list`; do tail -n+2 ./results/XP-EHH_${chrom}_${pop}.txt >> ./results/XP-EHH_all_${pop}.txt; done; done
+```
+
+[Back to top](#contents)
+
+
+## Geographic cline analysis
+
+
+## Genomic cline analysis
+
+
+## Linkage disequilibrium: tests of genetic coupling
+
+
+## Linkage disequilibrium: decay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
