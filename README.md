@@ -514,6 +514,8 @@ We'll run the PCA in R using the script `./R/pca.R`.
 
 ## ADMIXTURE
 
+![ADMIXTURE](/images/admixture.png "admixture")
+
 We'll estimate individual admixture proportions between one or more genetic clusters using `admixture`.
 
 ### Set up environment
