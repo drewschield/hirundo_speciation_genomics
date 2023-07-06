@@ -1043,6 +1043,8 @@ cd ..
 
 ## Genotype-phenotype associations
 
+![GWA](/images/gwa.png "gwa")
+
 We'll map genetic associations with ventral color and tail streamer length variation using Bayesian sparse linear mixed models (BSLMM) and univariate linear mixed models (LMM) in `GEMMA`.
 
 ### Set up environment
@@ -1332,6 +1334,8 @@ To summarize and plot the results, run `./R/gemma_LMM.R`, which also uses the `c
 
 
 ## Recombination rate
+
+![Recombination](/images/recombination.png "recombination")
 
 We will estimate recombination rate variation across the genome using `pyrho`, which makes use of a population size history inferred using `SMC++`.
 
@@ -1886,6 +1890,8 @@ bcftools view --threads 16 -r NC_053450.1 -O z ./vcf/hirundo_rustica.parental.gu
 
 ## Haplotype statistics
 
+![Selection](/images/selection.png "selection")
+
 We'll use haplotype diversity statistics to identify regions with patterns consistent with selection. First, we will phase variants for the parental populations. We'll then use the R package `rehh` to quantify haplotype statistics.
 
 ### Set up environment
@@ -2001,6 +2007,8 @@ for pop in rustica-tytleri rustica-gutturalis tytleri-gutturalis; do head -n1 ./
 
 
 ## Geographic cline analysis
+
+![Clines](/images/clines.png "clines")
 
 Genotype x phenotype and population genetic analyses revealed a set of candidate genomic regions that are both strongly associated with ventral plumage coloration or tail streamer lengths and that also exhibit local signatures of divergent selection between parental populations. To examine further evidence of divergent selection and the possibility that these regions promote reproductive isolation between parental populations, we'll investigate geographic clines based on hybrid indices derived from trait loci versus the genome background.
 
