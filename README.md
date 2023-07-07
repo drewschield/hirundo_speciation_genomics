@@ -511,7 +511,7 @@ There were actually only 837,275 SNPs after applying the allele frequency filter
 
 ### Perform PCA
 
-We'll run the PCA in R using the script `./R/pca.R`.
+We'll run the PCA in R using the script `~/hirundo_speciation_genomics/R/pca.R`.
 
 [Back to top](#contents)
 
@@ -657,7 +657,7 @@ bcftools view --threads 16 -S popmap.tytleri-gutturalis -R ./fst/anc-info.snps.t
 
 ### Estimate hybrid index and interspecific heterozygosity
 
-We'll run the analysis in R using the script `./R/introgress.R`.
+We'll run the analysis in R using the script `~/hirundo_speciation_genomics/R/introgress.R`.
 
 [Back to top](#contents)
 
@@ -1210,7 +1210,7 @@ Rscript processBSLMM_hybrid-tail-streamer.R
 
 #### Statistical summary
 
-To summarize the posterior distributions of hyperparameters and per-SNP posterior inclusion probabilities, run `./R/gemma_BSLMM.R`.
+To summarize the posterior distributions of hyperparameters and per-SNP posterior inclusion probabilities, run `~/hirundo_speciation_genomics/R/gemma_BSLMM.R`.
 
 ### Univariate LMMs
 
@@ -1328,7 +1328,7 @@ rm ./lmm_full_chrom/*.log.*
 
 #### Statistical summary
 
-To summarize and plot the results, run `./R/gemma_LMM.R`, which also uses the `chr_rename.txt` file.
+To summarize and plot the results, run `~/hirundo_speciation_genomics/R/gemma_LMM.R`, which also uses the `chr_rename.txt` file.
 
 [Back to top](#contents)
 
@@ -1594,7 +1594,7 @@ echo -e "chrom\tstart\tend\trate" > rustica.rmap.chrZ-NC_053488.1.10kb-1kb.txt; 
 
 #### Summarize results
 
-Run `./R/pyrho.R` to summarize and plot variation in genome-wide recombination rate.
+Run `~/hirundo_speciation_genomics/R/pyrho.R` to summarize and plot variation in genome-wide recombination rate.
 
 [Back to top](#contents)
 
@@ -1791,11 +1791,11 @@ for pop in ruty rugu guty; do echo -e "chrom\tsnp-start\tsnp-end\twald-p\twindow
 
 ### Statistical analysis and comparison of Fst distributions
 
-Run `./R/pixy.R` to summarize, plot, and statistically compare π, Fst, dxy, and recombination rate.
+Run `~/hirundo_speciation_genomics/R/pixy.R` to summarize, plot, and statistically compare π, Fst, dxy, and recombination rate.
 
-Run `./R/candidate_plotting_popgen_stats.R` to visualize population genetic summary statistics in candidate trait loci, along with additional statistics to detect signatures of selection (see below).
+Run `~/hirundo_speciation_genomics/R/candidate_plotting_popgen_stats.R` to visualize population genetic summary statistics in candidate trait loci, along with additional statistics to detect signatures of selection (see below).
 
-Run code blocks at the end of `./R/gemma_LMM.R` to summarize, plot, and statistically compare Fst distributions between significant and non-significant GWA SNPs.
+Run code blocks at the end of `~/hirundo_speciation_genomics/R/gemma_LMM.R` to summarize, plot, and statistically compare Fst distributions between significant and non-significant GWA SNPs.
 
 [Back to top](#contents)
 
@@ -1804,7 +1804,7 @@ Run code blocks at the end of `./R/gemma_LMM.R` to summarize, plot, and statisti
 
 It may be useful to further clarify which population(s) have been the targets of selection using population branch statistics to examine cases when one population has a much longer locus/region-specific branch length than the others, following [Yi et al. 2010](https://www.science.org/doi/full/10.1126/science.1190371): PBS = (T12 + T13 - T23)/2, where T = -log(1-Fst) for a given pair of populations.
 
-We have Fst data required to calculate PBS in sliding windows from `pixy`. Run `./R/pbs.R` to perform calculations (also in `./R/candidate_plotting_popgen_stats.R`).
+We have Fst data required to calculate PBS in sliding windows from `pixy`. Run `~/hirundo_speciation_genomics/R/pbs.R` to perform calculations (also in `~/hirundo_speciation_genomics/R/candidate_plotting_popgen_stats.R`).
 
 [Back to top](#contents)
 
@@ -2057,11 +2057,11 @@ sh extractSNPs_trait_tytleri-gutturalis.sh
 
 #### Estimate hybrid index
 
-Run these analyses in `./R/hzar_trait_rustica-tytleri.R`, `./R/hzar_trait_rustica-gutturalis.R`, and `./R/hzar_trait_tytleri-gutturalis.R`.
+Run these analyses in `~/hirundo_speciation_genomics/R/hzar_trait_rustica-tytleri.R`, `~/hirundo_speciation_genomics/R/hzar_trait_rustica-gutturalis.R`, and `~/hirundo_speciation_genomics/R/hzar_trait_tytleri-gutturalis.R`.
 
 #### Fit geographic cline models
 
-Run these analyses in `./R/hzar_trait_rustica-tytleri.R`, `./R/hzar_trait_rustica-gutturalis.R`, and `./R/hzar_trait_tytleri-gutturalis.R`.
+Run these analyses in `~/hirundo_speciation_genomics/R/hzar_trait_rustica-tytleri.R`, `~/hirundo_speciation_genomics/R/hzar_trait_rustica-gutturalis.R`, and `~/hirundo_speciation_genomics/R/hzar_trait_tytleri-gutturalis.R`.
 
 ### Analysis of background loci
 
@@ -2155,7 +2155,7 @@ These scripts output Rdata results files for each locus to `./hzar_results`.
 
 #### Summarize and plot background geographic clines
 
-Run `./R/hzar_summary.R` and `/R/hzar_plotting`.
+Run `~/hirundo_speciation_genomics/R/hzar_summary.R` and `/R/hzar_plotting`.
 
 [Back to top](#contents)
 
@@ -2206,15 +2206,74 @@ A problem that this presents is that LD is automatically generated as a conseque
 
 The solution is to compare LD in hybrids between SNPs in candidate regions in bins of allele frequency differences between parental populations to LD between random SNPs within the same allele frequency differences. This allows a fair evaluation of whether LD between the candidate regions is truly high relative to a background with matched allele frequency differences, providing evidence for selection for coupling in trait loci.
 
+### Set up environment
+```
+cd ./analysis/
+mkdir ld
+cd ld
+mkdir vcf
+mkdir afd
+```
 
+1. Format population lists.
+```
+grep 'RU' ../pixy/popmap.pixy | cut -f1 > popmap.rustica
+grep 'TY' ../pixy/popmap.pixy | cut -f1 > popmap.tytleri
+grep 'GU' ../pixy/popmap.pixy | cut -f1 > popmap.gutturalis
+grep 'RT' ../pixy/popmap.pixy | cut -f1 > popmap.rustica-tytleri
+grep 'RG' ../pixy/popmap.pixy | cut -f1 > popmap.rustica-gutturalis
+grep 'TG' ../pixy/popmap.pixy | cut -f1 > popmap.tytleri-gutturalis
+```
+2. Format trait locus BED file `candidate.bed`.
 
+### Phase input VCF for haplotype-based LD statistics
+```
+java -Xmx96g -jar ../gemma/beagle.28Jun21.220.jar nthreads=24 gt=~/hirundo_speciation_genomics/vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.vcf.gz out=./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased impute=false
+tabix -p vcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz
+```
 
+### Calculate allele frequency differences between parental populations
 
+We'll use these results to parse sets of SNPs within bins of allele frequency differences.
 
+#### Extract allele frequencies in parental populations
+```
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rustica --freq --out ./afd/allele-freq.all.rustica
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.tytleri --freq --out ./afd/allele-freq.all.tytleri
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.gutturalis --freq --out ./afd/allele-freq.all.gutturalis
+```
 
+#### Reformat outputs
 
+We'll fix the header line and data entries to split the allele from the frequency for each allele.
+```
+echo -e "CHROM\tPOS\tN_ALLELES\tN_CHR\tALLELE1\tFREQ1\tALLELE2\tFREQ2" > ./afd/allele-freq.all.rustica.txt; tr ':' '\t' < ./afd/allele-freq.all.rustica.frq | tail -n+2 >> ./afd/allele-freq.all.rustica.txt
+echo -e "CHROM\tPOS\tN_ALLELES\tN_CHR\tALLELE1\tFREQ1\tALLELE2\tFREQ2" > ./afd/allele-freq.all.tytleri.txt; tr ':' '\t' < ./afd/allele-freq.all.tytleri.frq | tail -n+2 >> ./afd/allele-freq.all.tytleri.txt
+echo -e "CHROM\tPOS\tN_ALLELES\tN_CHR\tALLELE1\tFREQ1\tALLELE2\tFREQ2" > ./afd/allele-freq.all.gutturalis.txt; tr ':' '\t' < ./afd/allele-freq.all.gutturalis.frq | tail -n+2 >> ./afd/allele-freq.all.gutturalis.txt
+```
 
+#### Calculate allele frequency differences
 
+Run `~/hirundo_speciation_genomics/R/ld_allele-freq-diff.R`. This outputs text files with allele frequency differences between pairs of populations.
+
+#### Parse data for trait loci and genome background
+
+1. Parse data in trait loci.
+```
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.candidate.rustica-tytleri.txt; tail -n+2 ./afd/allele-freq-diff.all.rustica-tytleri.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.candidate.rustica-tytleri.txt 
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.candidate.rustica-gutturalis.txt; tail -n+2 ./afd/allele-freq-diff.all.rustica-gutturalis.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.candidate.rustica-gutturalis.txt 
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.candidate.tytleri-gutturalis.txt; tail -n+2 ./afd/allele-freq-diff.all.tytleri-gutturalis.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.candidate.tytleri-gutturalis.txt 
+```
+2. Parse data in the background.
+```
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.background.rustica-tytleri.txt; tail -n+2 ./afd/allele-freq-diff.all.rustica-tytleri.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -v -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.background.rustica-tytleri.txt 
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.background.rustica-gutturalis.txt; tail -n+2 ./afd/allele-freq-diff.all.rustica-gutturalis.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -v -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.background.rustica-gutturalis.txt 
+echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.background.tytleri-gutturalis.txt; tail -n+2 ./afd/allele-freq-diff.all.tytleri-gutturalis.txt | awk '{OFS="\t"}{print $1,$2-1,$2,$3}' | bedtools intersect -v -a - -b candidate.bed | awk '{OFS="\t"}{print $1,$3,$4}' >> ./afd/allele-freq-diff.background.tytleri-gutturalis.txt 
+```
+
+#### Extract data in matched bins of allele frequency differences
+
+This is also done in `~/hirundo_speciation_genomics/R/ld_allele-freq-diff.R`. This outputs data for matched candidate & background SNPs in allele frequency difference bins with 0.05 increments. These are in the `./afd/` subdirectory.
 
 
 
