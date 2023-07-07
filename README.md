@@ -470,8 +470,6 @@ for i in ./analysis/mapping_statistics/*.stat.txt; do name=`echo $i | cut -d. -f
 
 ## PCA
 
-![PCA](/images/pca.png "pca")
-
 We'll examine population genetic structure within barn swallows using the R package `SNPRelate`.
 
 ### Set up environment
@@ -520,8 +518,6 @@ We'll run the PCA in R using the script `~/hirundo_speciation_genomics/R/pca.R`.
 
 ## ADMIXTURE
 
-![ADMIXTURE](/images/admixture.png "admixture")
-
 We'll estimate individual admixture proportions between one or more genetic clusters using `admixture`.
 
 ### Set up environment
@@ -565,8 +561,6 @@ grep -h CV log*.out
 
 
 ## Hybrid index and heterozygosity
-
-![Heterozygosity](/images/triangle.png "heterozygosity")
 
 We'll compare individual hybrid index with interspecific heterozygosity at ancestry-informative sites to characterize our current sampling of hybrid zone populations. Elsie Shogren kindly shared her R Markdown detailing her procedure for doing this analysis in her system (thank you, Elsie!).
 
@@ -665,8 +659,6 @@ We'll run the analysis in R using the script `~/hirundo_speciation_genomics/R/in
 
 
 ## Demographic inference
-
-![Demography](/images/demography.png "demography")
 
 We'll infer two-population demographic histories and the relative timing of secondary contact between parental populations using modifications to `dadi` described in [Rougemont et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) and available via [GitHub](https://github.com/QuentinRougemont/DemographicInference). Preliminary analyses revealed that our sample sizes from the whole genome dataset were insufficient to resolve demographic histories following very recent divergence (consistent with simulation-based results from [Robinson et al. 2014](https://bmcecolevol.biomedcentral.com/articles/10.1186/s12862-014-0254-4)). To capitalize on a larger sample size, we'll reanalyze RADseq data from [Scordato et al. 2017](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14276) and [Scordato et al. 2020](https://onlinelibrary.wiley.com/doi/full/10.1111/ele.13420), which were demutiplexed and quality trimmed as described in [Schield et al. 2021](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.15885).
 
@@ -1045,8 +1037,6 @@ cd ..
 
 ## Genotype-phenotype associations
 
-![GWA](/images/gwa.png "gwa")
-
 We'll map genetic associations with ventral color and tail streamer length variation using Bayesian sparse linear mixed models (BSLMM) and univariate linear mixed models (LMM) in `GEMMA`.
 
 ### Set up environment
@@ -1336,8 +1326,6 @@ To summarize and plot the results, run `~/hirundo_speciation_genomics/R/gemma_LM
 
 
 ## Recombination rate
-
-![Recombination](/images/recombination.png "recombination")
 
 We will estimate recombination rate variation across the genome using `pyrho`, which makes use of a population size history inferred using `SMC++`.
 
@@ -1892,8 +1880,6 @@ bcftools view --threads 16 -r NC_053450.1 -O z ./vcf/hirundo_rustica.parental.gu
 
 ## Haplotype statistics
 
-![Selection](/images/selection.png "selection")
-
 We'll use haplotype diversity statistics to identify regions with patterns consistent with selection. First, we will phase variants for the parental populations. We'll then use the R package `rehh` to quantify haplotype statistics.
 
 ### Set up environment
@@ -2009,8 +1995,6 @@ for pop in rustica-tytleri rustica-gutturalis tytleri-gutturalis; do head -n1 ./
 
 
 ## Geographic cline analysis
-
-![Clines](/images/clines.png "clines")
 
 Genotype x phenotype and population genetic analyses revealed a set of candidate genomic regions that are both strongly associated with ventral plumage coloration or tail streamer lengths and that also exhibit local signatures of divergent selection between parental populations. To examine further evidence of divergent selection and the possibility that these regions promote reproductive isolation between parental populations, we'll investigate geographic clines based on hybrid indices derived from trait loci versus the genome background.
 
