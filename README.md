@@ -25,6 +25,8 @@ Feel free to contact me at drew.schield[at]colorado.edu with any questions.
 * [Haplotype statistics](#haplotype-statistics)
 * [Geographic cline analysis](#geographic-cline-analysis)
 * [Genomic cline analysis](#genomic-cline-analysis)
+* [Linkage disequilibrium: tests of genetic coupling](#linkage-disequilibrium-tests-of-genetic-coupling)
+* [Linkage disequilibrium: decay](#linkage-disequilibrium-decay)
 * [Appendix](#appendix)
 	* [Assignment of B10K barn swallow genome scaffolds to chromosomes](#assignment-of-b10k-barn-swallow-genome-scaffolds-to-chromosomes)
 	* [Repeat masking the reference genome](#repeat-masking-the-reference-genome)
