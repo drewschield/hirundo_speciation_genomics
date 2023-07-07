@@ -2215,6 +2215,8 @@ mkdir ld
 cd ld
 mkdir vcf
 mkdir afd
+mkdir r2
+mkdir r2_pairwise
 ```
 
 1. Format population lists.
@@ -2277,77 +2279,104 @@ echo -e "CHROM\tPOS\tAFD" > ./afd/allele-freq-diff.background.tytleri-gutturalis
 
 This is also done in `~/hirundo_speciation_genomics/R/ld_allele-freq-diff.R`. This outputs data for matched candidate & background SNPs in allele frequency difference bins with 0.05 increments. These are in the `./afd/` subdirectory.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### Measure LD between SNPs in matched bins
+
+We'll measure haplotype r2 between SNPs in matched bins of allele frequency differences for trait loci and the genome background.
+
+Note: r2 is influenced by sample size, so we will randomly sample 20 individuals per population for analysis.
+```
+shuf -n 20 popmap.rustica > popmap.rand.rustica
+shuf -n 20 popmap.tytleri > popmap.rand.tytleri
+shuf -n 20 popmap.gutturalis > popmap.rand.gutturalis
+shuf -n 20 popmap.rustica-tytleri > popmap.rand.rustica-tytleri
+shuf -n 20 popmap.rustica-gutturalis > popmap.rand.rustica-gutturalis
+shuf -n 20 popmap.tytleri-gutturalis > popmap.rand.tytleri-gutturalis
+```
+
+#### Calculate interchromosomal r2 in hybrids
+
+1. In trait loci bins.
+```
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.rt-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-tytleri --positions tmp.rt-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.rustica-tytleri; done; rm tmp.rt-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-gutturalis.bin$bin.txt | cut -f1,2 > tmp.rg-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-gutturalis --positions tmp.rg-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.rustica-gutturalis; done; rm tmp.rg-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.tytleri-gutturalis.bin$bin.txt | cut -f1,2 > tmp.tg-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri-gutturalis --positions tmp.tg-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.tytleri-gutturalis; done; rm tmp.tg-cand.position.txt
+```
+2. In background bins.
+```
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.rt-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-tytleri --positions tmp.rt-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.rustica-tytleri; done; rm tmp.rt-back.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.rustica-gutturalis.bin$bin.txt | cut -f1,2 > tmp.rg-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-gutturalis --positions tmp.rg-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.rustica-gutturalis; done; rm tmp.rg-back.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.tytleri-gutturalis.bin$bin.txt | cut -f1,2 > tmp.tg-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri-gutturalis --positions tmp.tg-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.tytleri-gutturalis; done; rm tmp.tg-back.position.txt
+```
+
+#### Calculate interchromosomal r2 in parental populations
+
+1. In trait loci bins.
+```
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.ru-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica --positions tmp.ru-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.rustica; done; rm tmp.ru-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.ty-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri --positions tmp.ty-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.tytleri; done; rm tmp.ty-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-gutturalis.bin$bin.txt | cut -f1,2 > tmp.gu-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.gutturalis --positions tmp.gu-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.gutturalis; done; rm tmp.gu-cand.position.txt
+```
+2. In background bins.
+```
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.ru-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica --positions tmp.ru-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.rustica; done; rm tmp.ru-back.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.ty-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri --positions tmp.ty-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.tytleri; done; rm tmp.ty-back.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.background.rustica-gutturalis.bin$bin.txt | cut -f1,2 > tmp.gu-back.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.gutturalis --positions tmp.gu-back.position.txt --interchrom-hap-r2 --out ./r2/r2.background.AFD-bin$bin.gutturalis; done; rm tmp.gu-back.position.txt
+```
+
+#### Calculate interchromosomal r2 in simulated hybrids
+
+Here, we want to approximate initial admixture LD in hybrids in the candidate regions, for comparison to the actual hybrids. Because we've sampled a random 20 individuals per pop, we'll sample 10 individuals from each pair of populations to make a simulated 'F1' pop.
+
+1. Format simulated hybrid population lists.
+```
+shuf -n 10 popmap.rustica > popmap.sim.rustica-tytleri; shuf -n 10 popmap.tytleri >> popmap.sim.rustica-tytleri
+shuf -n 10 popmap.rustica > popmap.sim.rustica-gutturalis; shuf -n 10 popmap.gutturalis >> popmap.sim.rustica-gutturalis
+shuf -n 10 popmap.tytleri > popmap.sim.tytleri-gutturalis; shuf -n 10 popmap.gutturalis >> popmap.sim.tytleri-gutturalis
+```
+2. Calculate interchromosomal r2 in trait loci.
+```
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-tytleri.bin$bin.txt | cut -f1,2 > tmp.sim.rt-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.sim.rustica-tytleri --positions tmp.sim.rt-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.sim.rustica-tytleri; done; rm tmp.sim.rt-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.rustica-gutturalis.bin$bin.txt | cut -f1,2 > tmp.sim.rg-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.sim.rustica-gutturalis --positions tmp.sim.rg-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.sim.rustica-gutturalis; done; rm tmp.sim.rg-cand.position.txt
+for bin in 2 25 3 35 4 45 5 55 6; do tail -n+2 ./afd/allele-freq-diff.candidate.tytleri-gutturalis.bin$bin.txt | cut -f1,2 > tmp.sim.tg-cand.position.txt;  vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.sim.tytleri-gutturalis --positions tmp.sim.tg-cand.position.txt --interchrom-hap-r2 --out ./r2/r2.candidate.AFD-bin$bin.sim.tytleri-gutturalis; done; rm tmp.sim.tg-cand.position.txt
+```
+
+#### Statistical analysis
+
+To compare distributions of interchromosomal r2, perform statistical summaries, and plot results, run `~/hirundo_speciation_genomics/R/ld_plotting_summary.R`.
+
+### Measure LD between pairs of trait loci
+
+To evaluate whether certain pairs of trait loci are in higher LD than others, we'll calculate inter- and intrachromosomal haplotype r2 between all pairs of trait loci in each hybrid zone across SNPs with parental allele frequency differences between 0.3 and 0.6.
+
+#### Format input SNP data
+
+1. Create temporary headerless files for allele frequency difference bins.
+```
+for i in 3 35 4 45 5 55 6; do tail -n +2 ./afd/allele-freq-diff.candidate.rustica-tytleri.bin${i}.txt > ./tmp.allele-freq-diff.candidate.rustica-tytleri.bin${i}.txt; done
+for i in 3 35 4 45 5 55 6; do tail -n +2 ./afd/allele-freq-diff.candidate.rustica-gutturalis.bin${i}.txt > ./tmp.allele-freq-diff.candidate.rustica-gutturalis.bin${i}.txt; done
+for i in 3 35 4 45 5 55; do tail -n +2 ./afd/allele-freq-diff.candidate.tytleri-gutturalis.bin${i}.txt > ./tmp.allele-freq-diff.candidate.tytleri-gutturalis.bin${i}.txt; done
+```
+2. Concatenate the bins and clean up.
+```
+cat tmp.allele-freq-diff.candidate.rustica-tytleri.bin*.txt | cut -f1,2 > candidate.afd_3-6.rustica-tytleri.txt
+cat tmp.allele-freq-diff.candidate.rustica-gutturalis.bin*.txt | cut -f1,2 > candidate.afd_3-6.rustica-gutturalis.txt
+cat tmp.allele-freq-diff.candidate.tytleri-gutturalis.bin*.txt | cut -f1,2 > candidate.afd_3-6.tytleri-gutturalis.txt
+rm tmp.allele-freq-diff.*
+```
+
+#### Calculate haplotype r2
+```
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-tytleri --positions candidate.afd_3-6.rustica-tytleri.txt --hap-r2 --out ./r2_pairwise/r2.candidate.afd.rustica-tytleri
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-tytleri --positions candidate.afd_3-6.rustica-tytleri.txt --interchrom-hap-r2 --out ./r2_pairwise/r2.candidate.afd.rustica-tytleri
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-gutturalis --positions candidate.afd_3-6.rustica-gutturalis.txt --hap-r2 --out ./r2_pairwise/r2.candidate.afd.rustica-gutturalis
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.rustica-gutturalis --positions candidate.afd_3-6.rustica-gutturalis.txt --interchrom-hap-r2 --out ./r2_pairwise/r2.candidate.afd.rustica-gutturalis
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri-gutturalis --positions candidate.afd_3-6.tytleri-gutturalis.txt --hap-r2 --out ./r2_pairwise/r2.candidate.afd.tytleri-gutturalis
+vcftools --gzvcf ./vcf/hirundo_rustica+smithii.allsites.final.auto+chrZ.snps.miss02.maf05.ingroup.phased.vcf.gz --keep popmap.rand.tytleri-gutturalis --positions candidate.afd_3-6.tytleri-gutturalis.txt --interchrom-hap-r2 --out ./r2_pairwise/r2.candidate.afd.tytleri-gutturalis
+```
+
+#### Statistical analysis
+
+To compare distributions of interchromosomal r2, perform statistical summaries, and plot results, run `~/hirundo_speciation_genomics/R/ld_pairwise_candidate.R`.
 
 [Back to top](#contents)
 
@@ -2355,6 +2384,39 @@ This is also done in `~/hirundo_speciation_genomics/R/ld_allele-freq-diff.R`. Th
 ## Linkage disequilibrium: decay
 
 In progress...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 [Back to top](#contents)
 
