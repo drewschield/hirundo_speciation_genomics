@@ -2200,7 +2200,93 @@ Inputs for the trait loci can be formatted using the popmaps and locus-specific 
 
 ## Linkage disequilibrium: tests of genetic coupling
 
-In progress...
+We want to know whether alleles in outlier regions associated with the divergent traits in barn swallows and which resist gene flow are statistically associated (i.e., in linkage disequilibrium) with each other, and whether this genetic coupling has been maintained by selection over time in hybrid zones. We expect that this signature will pop up in the hybrid populations, where different recombinants of the trait loci are being tested by selection, which has favored certain combinations of alleles at the different regions, producing long range and/or interchromosomal LD.
+
+A problem that this presents is that LD is automatically generated as a consequence of admixture in hybrid zones, and will be especially prevalent in genomic regions that are highly-differentiated between parental populations. So, evidence for coupling between the trait loci requires an appropriate background for comparison, since allele frequency differences are higher in these regions than elsewhere in the genome.
+
+The solution is to compare LD in hybrids between SNPs in candidate regions in bins of allele frequency differences between parental populations to LD between random SNPs within the same allele frequency differences. This allows a fair evaluation of whether LD between the candidate regions is truly high relative to a background with matched allele frequency differences, providing evidence for selection for coupling in trait loci.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 [Back to top](#contents)
 
