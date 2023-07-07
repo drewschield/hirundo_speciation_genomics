@@ -2383,39 +2383,56 @@ To compare distributions of interchromosomal r2, perform statistical summaries, 
 
 ## Linkage disequilibrium: decay
 
-In progress...
+For comparison to interchromosomal patterns, and as a benchmark for the relationship between linkage disequilibrium and physical linkage, we'll examine the decay of LD with distance between SNPs on the same chromosome. We'll examine LD decay in each of the hybrid zones and parental populations, and also make comparisons between genome-wide patterns and decay on the Z chromosome, specifically.
 
+### Set up environment
+```
+cd ./analysis/
+mkdir ld_decay
+cd ld_decay
+mkdir r2
+mkdir summary
+cp ../ld/popmap.*
+```
 
+#### Format genomic windows to randomly sample
+1. Format 100 kb genome-wide windows.
+```
+cat ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.auto.genome ~/hirundo_speciation_genomics/Hirundo_rustica_bHirRus1.final.chrZ.genome | grep -v 'NW_' | bedtools makewindows -g - -w 100000 > Hirundo_rustica_bHirRus1.final.window_100kb.bed
+```
+2. Randomly sample 100 autosomal windows.
+```
+echo -e "chrom\tchromStart\tchromEnd" > Hirundo_rustica_bHirRus1.final.window_100kb.rand.bed; grep -v 'NC_053488.1' Hirundo_rustica_bHirRus1.final.window_100kb.bed | shuf -n 100 | bedtools sort -i - >> Hirundo_rustica_bHirRus1.final.window_100kb.auto.rand.bed
+```
 
+### Quantify LD decay
 
+#### Calculate r2
 
+Run `runHaplotypeR2.sh` to calculate r2 between SNPs within 25 kb on autosomes and the Z chromosome.
+```
+sh runHaplotypeR2.sh
+```
 
+#### Summarize results
 
+Run `runSummarizeR2.sh` to summarize values by physical distance.
+```
+sh runSummarizeR2.sh
+```
 
+#### Calculate summary statistics in distance bins
 
+Run `ld_decay_summary.R`. This script reads in the summary output above and produces a table of summary statistics in distance bins (the number and size of these are set as the `test.range` variable).
 
+We'll run `runDecay.sh` to call the R script for autosomes and the Z chromosome for each population.
+```
+sh runDecay.sh
+```
 
+### Summarize LD decay
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Run `~/hirundo_speciation_genomics/R/ld_decay_plotting.R` to summarize/plot the results.
 
 
 [Back to top](#contents)
