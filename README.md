@@ -6,7 +6,7 @@ This repository contains details on the data processing and analysis steps used 
 
 Lists and reference files can be found in various analysis directories, as can Shell and Python scripts used in elements of the analysis workflow. R scripts are in the `R` directory. Note that you may need to adjust the organization of path/file locations to suit your environment. This workflow assumes that you return to the main working directory `~/hirundo_speciation_genomics` after completing major analysis sections. Adjust the path before the main working directory as necessary. Walkthrough of software installations will take place in `~/hirundo_speciation_genomics/tmp/`.
 
-Feel free to contact me at drew.schield[at]colorado.edu with any questions.
+Feel free to contact me at drew.schield[at]virginia.edu with any questions.
 
 ## Contents
 
