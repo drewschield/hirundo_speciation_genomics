@@ -122,15 +122,13 @@ rg.loadlocusmodel("free" ,"mirror","modelVI");
 print(rg[[locus]]$models)
 
 ## Modify all models to focus on the transect region.
-## Observations were between 0 and 2835.757 km, with Yekatarinburg.
-## Observations were between 0 and 1942.173 km after removing Yekatarinburg.
 
 min(rg.dists$km)
 max(rg.dists$km)
 
 rg[[locus]]$models <- sapply(rg[[locus]]$models,
                          hzar.model.addBoxReq,
-                         -30 , 1973,
+                         -30 , 3526,
                          simplify=FALSE)
 
 ## Check the updated settings

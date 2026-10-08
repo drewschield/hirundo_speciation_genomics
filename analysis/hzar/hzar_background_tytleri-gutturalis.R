@@ -131,15 +131,13 @@ tg.loadlocusmodel("free" ,"mirror","modelVI");
 print(tg[[locus]]$models)
 
 ## Modify all models to focus on the transect region.
-## Observations were between 0 and 2835.757 km, with Yekatarinbutg.
-## Observations were between 0 and 1942.173 km after removing Yekatarinbutg.
 
 min(tg.dists$km)
 max(tg.dists$km)
 
 tg[[locus]]$models <- sapply(tg[[locus]]$models,
                          hzar.model.addBoxReq,
-                         -30 , 1973,
+                         -30 , 2185,
                          simplify=FALSE)
 
 ## Check the updated settings
