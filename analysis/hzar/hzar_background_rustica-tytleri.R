@@ -130,8 +130,6 @@ rt.loadlocusmodel("free" ,"mirror","modelVI");
 print(rt[[locus]]$models)
 
 ## Modify all models to focus on the transect region.
-## Observations were between 0 and 2835.757 km, with Yekatarinburg.
-## Observations were between 0 and 1942.173 km after removing Yekatarinburg.
 
 min(rt.dists$km)
 max(rt.dists$km)
